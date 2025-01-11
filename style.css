@@ -266,6 +266,159 @@ footer {
     cursor: pointer;
 }
 
+.clearfix::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+
+.filter-buttons {
+    margin-bottom: 20px; /* Add some spacing */
+    text-align: center; /* Center the buttons */
+}
+
+.filter-button {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px; /* Add a slight border radius */
+}
+
+.filter-button:hover {
+    background-color: #367c39; /* Darker green on hover */
+}
+
+/* ... (Your existing styles) ... */
+
+/* About Section */
+.about-content {
+    display: flex;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.profile-picture {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    margin-right: 30px;
+    cursor: pointer; /* For lightbox effect */
+}
+
+.about-text {
+    flex: 1;
+}
+
+#read-more-btn {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+/* Experience Section */
+.experience-section {
+    margin-bottom: 40px;
+}
+
+.experience {
+    margin-bottom: 20px;
+    opacity: 0; /* Initially hidden for animation */
+    transform: translateY(20px); /* Start slightly below */
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.experience.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Skills Section */
+.skills-list li {
+    margin-bottom: 15px;
+}
+
+.skill-name {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.skill-bar {
+    background-color: #e0e0e0;
+    border-radius: 5px;
+    height: 10px;
+    overflow: hidden;
+}
+
+.skill-level {
+    background-color: #4CAF50;
+    height: 100%;
+    width: 0; /* Initially 0 for animation */
+    transition: width 1s ease-in-out;
+}
+
+.skills-list li:hover .skill-bar {
+    background-color: #bdbdbd; /* Slightly darker on hover */
+}
+
+/* ... (Your other styles) ... */
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 5px;
+    position: relative;
+}
+
+.close-button {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.clearfix::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+
 .filter-buttons {
     margin-bottom: 20px; /* Add some spacing */
     text-align: center; /* Center the buttons */

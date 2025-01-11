@@ -18,3 +18,45 @@ filterButtons.forEach(button => {
         });
     });
 });
+
+$(document).ready(function() {
+    // Smooth Scrolling
+    $('.smooth-scroll').on('click', function(event) {
+        if (this.hash !== "") {
+            event.preventDefault();
+            const hash = this.hash;
+            $('html, body').animate({
+                scrollTop: $(hash).offset().top
+            }, 800, function() {
+                window.location.hash = hash;
+            });
+        }
+    });
+
+    // Read More Button
+    $('#read-more-btn').on('click', function() {
+        $('#more-about').slideToggle();
+        $(this).text(function(i, text) {
+            return text === "Read More" ? "Read Less" : "Read More";
+        });
+    });
+
+    // Animate Experience Section
+    $(window).on('scroll', function() {
+        $('.experience').each(function() {
+            const pos = $(this).offset().top;
+            const winTop = $(window).scrollTop();
+            if (pos < winTop + $(window).height() - 100) {
+                $(this).addClass('show');
+            }
+        });
+    });
+
+    // Animate Skill Bars
+    $('.skill-level').each(function() {
+        const level = $(this).data('level');
+        $(this).animate({
+            width: level + '%'
+        }, 1000);
+    });
+});
