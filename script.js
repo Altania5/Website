@@ -1,4 +1,9 @@
 // In script.js
+import { getXataClient } from "./xata";
+const xata = getXataClient();
+
+const record = await xata.db.tableName.read("rec_xyz");
+console.log(record);
 
 const filterButtons = document.querySelectorAll('.filter-button'); // Assume you add filter buttons in HTML
 const projectCards = document.querySelectorAll('.project-card');
