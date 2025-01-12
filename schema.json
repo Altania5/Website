@@ -1,0 +1,29 @@
+{
+    "tables": [
+      {
+        "name": "Projects",
+        "columns": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "technologies",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "text"
+          },
+          {
+            "name": "githubUrl",
+            "type": "string"
+          },
+          {
+            "name": "liveDemoUrl",
+            "type": "string"
+          }
+        ]
+      }
+    ]
+  }
