@@ -1,0 +1,8 @@
+{
+  "databaseURL": "https://Altania5-s-workspace-m0o0os.us-east-1.xata.sh/db/Altania",
+  "codegen": {
+    "output": "src/xata.js",
+    "moduleType": "cjs",
+    "declarations": true
+  }
+}
