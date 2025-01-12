@@ -1,35 +1,3 @@
-/*import { getXataClient } from './src/xata.js'; // Corrected relative path
-
-const xata = getXataClient();
-
-// Fetch and display projects
-const projectsSection = document.getElementById('projects'); // Assuming you have a section with id="projects"
-
-async function fetchAndDisplayProjects() {
-    try {
-        const records = await xata.db.Projects.getAll(); // Fetch all projects from Xata
-
-        records.forEach(project => {
-            // Create project elements (adjust as needed based on your HTML structure)
-            const projectDiv = document.createElement('div');
-            projectDiv.innerHTML = `
-                <h3>${project.name}</h3>
-                <p>${project.technologies}</p>
-                <p>${project.description}</p>
-                <a href="${project.githubUrl}" target="_blank">View Code</a>
-                <a href="${project.liveDemoUrl}" target="_blank">Live Demo</a>
-            `;
-            projectsSection.appendChild(projectDiv);
-        });
-    } catch (error) {
-        console.error('Error fetching projects:', error);
-        // Handle the error (e.g., display an error message)
-    }
-}
-
-fetchAndDisplayProjects(); // Call the function to fetch and display projects
-*/
-
 const filterButtons = document.querySelectorAll('.filter-button'); // Assume you add filter buttons in HTML
 const projectCards = document.querySelectorAll('.project-card');
 
@@ -90,3 +58,15 @@ $(document).ready(function() {
         }, 1000);
     });
 });
+
+fetch('/netlify/functions/increment-counter.mjs')
+  .then(response => response.json())
+  .then(data => {
+    console.log('Current count:', data.count);
+    // Update the counter display on your page
+    const counterElement = document.getElementById('user-counter');
+    if (counterElement) {
+      counterElement.textContent = data.count;
+    }
+  })
+  .catch(error => console.error('Error fetching counter:', error));
