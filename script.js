@@ -59,7 +59,7 @@ $(document).ready(function() {
     });
 });
 
-fetch('/netlify/functions/increment-counter.mjs')
+fetch('/.netlify/functions/increment-counter')
   .then(response => response.json())
   .then(data => {
     console.log('Current count:', data.count);
