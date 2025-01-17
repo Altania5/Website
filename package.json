@@ -1,5 +1,26 @@
 {
   "dependencies": {
-    "faunadb": "^4.8.2"
-  }
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "faunadb": "^4.8.2",
+    "mysql2": "^3.12.0"
+  },
+  "name": "website",
+  "version": "1.0.0",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Altania5/Website.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Altania5/Website/issues"
+  },
+  "homepage": "https://github.com/Altania5/Website#readme",
+  "description": ""
 }

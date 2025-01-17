@@ -70,3 +70,31 @@ fetch('/.netlify/functions/increment-counter')
     }
   })
   .catch(error => console.error('Error fetching counter:', error));
+
+  $(document).ready(function() {
+    $("#loginForm").submit(function(event) {
+        event.preventDefault();
+
+        // Get the username and password values here
+        const username = $("#username").val();
+        const password = $("#password").val();
+
+        $.ajax({
+            url: "login.php", // Update with your server-side script
+            method: "POST",
+            data: { username: username, password: password }, // Pass data correctly
+            success: function(response) {
+                if (response.success) {
+                    alert("Login successful!");
+                    // ... your code for successful login ...
+                } else {
+                    alert("Invalid username or password.");
+                }
+            },
+            error: function(error) {
+                console.error("Login error:", error);
+                alert("Login failed. Please try again later.");
+            }
+        });
+    });
+});
