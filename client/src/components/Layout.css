@@ -1,0 +1,48 @@
+.layout {
+  min-height: 100vh;
+  background: radial-gradient(circle at top left, rgba(64, 196, 155, 0.08), transparent 40%),
+    radial-gradient(circle at bottom right, rgba(153, 27, 27, 0.12), transparent 45%),
+    #0c0e11;
+  color: #dde4e3;
+}
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 5rem;
+}
+
+.footer {
+  border-top: 1px solid rgba(64, 196, 155, 0.15);
+  padding: 2rem 1.5rem;
+  background: rgba(9, 11, 13, 0.95);
+}
+
+.footer__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  gap: 0.75rem;
+  color: rgba(221, 228, 227, 0.7);
+}
+
+.footer__brand {
+  font-weight: 600;
+  color: #40c49b;
+}
+
+.footer__note {
+  font-size: 0.95rem;
+}
+
+.footer__copyright {
+  font-size: 0.85rem;
+  color: rgba(221, 228, 227, 0.5);
+}
+
+@media (max-width: 768px) {
+  main {
+    padding: 2.5rem 1.25rem 4rem;
+  }
+}
+
