@@ -1,0 +1,105 @@
+.about-page {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+  min-height: 100vh;
+}
+
+.container {
+  width: 80%;
+  margin: 40px auto;
+}
+
+.about-content {
+  display: flex;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.profile-picture {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  margin-right: 30px;
+  object-fit: cover;
+}
+
+.about-text {
+  flex: 1;
+}
+
+.about-text h2 {
+  margin-bottom: 15px;
+  border-bottom: 2px solid #e8491d;
+  padding-bottom: 10px;
+}
+
+.experience-section,
+.education-section,
+.skills-section,
+.hobbies-section {
+  margin-bottom: 40px;
+}
+
+.experience {
+  margin-bottom: 20px;
+}
+
+.experience h3 {
+  margin-bottom: 5px;
+}
+
+.experience ul {
+  list-style: none;
+  padding: 0;
+}
+
+.experience ul li {
+  background: #eee;
+  padding: 8px 15px;
+  margin-bottom: 5px;
+  border-radius: 5px;
+}
+
+.skills-list {
+  list-style: none;
+  padding: 0;
+}
+
+.skill-name {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.skill-bar {
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.skill-level {
+  background-color: #4CAF50;
+  height: 100%;
+}
+
+.footer {
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  padding: 20px 0;
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  .about-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-picture {
+    margin-right: 0;
+    margin-bottom: 20px;
+  }
+}

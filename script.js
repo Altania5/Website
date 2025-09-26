@@ -59,18 +59,6 @@ $(document).ready(function() {
     });
 });
 
-fetch('/.netlify/functions/increment-counter')
-  .then(response => response.json())
-  .then(data => {
-    console.log('Current count:', data.count);
-    // Update the counter display on your page
-    const counterElement = document.getElementById('user-counter');
-    if (counterElement) {
-      counterElement.textContent = data.count;
-    }
-  })
-  .catch(error => console.error('Error fetching counter:', error));
-
   $(document).ready(function() {
     $("#loginForm").submit(function(event) {
         event.preventDefault();
