@@ -1,3 +1,24 @@
+button, .btn {
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+button:hover, .btn:hover {
+  background: #233041;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes riseUp {
+  0% { opacity: 0; transform: translate(-50%, 6px) scale(0.96); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -36px) scale(1); }
+}
 :root {
   --color-teal: #40c49b;
   --color-maroon: #991b1b;
