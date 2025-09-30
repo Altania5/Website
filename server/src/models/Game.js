@@ -35,7 +35,8 @@ const gameSchema = new mongoose.Schema(
       surveillanceShips: { type: Number, default: 0 },
       supportWings: { type: Number, default: 0 },
       alexandriteArmy: { count: { type: Number, default: 0 }, level: { type: Number, default: 1 } },
-      topazTroopers: { count: { type: Number, default: 0 }, level: { type: Number, default: 1 } }
+      topazTroopers: { count: { type: Number, default: 0 }, level: { type: Number, default: 1 } },
+      nephriteNavy: { count: { type: Number, default: 0 }, level: { type: Number, default: 1 } }
     },
     energyAllocation: {
       craftingPct: { type: Number, default: 0 }
