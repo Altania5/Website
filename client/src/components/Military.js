@@ -2,6 +2,18 @@ import React, { useEffect, useMemo, useState } from "react";
 import GameNav from "./GameNav";
 import axios from "axios";
 
+const branchPaths = {
+  nephrite: "nephriteNavy",
+  alexandrite: "alexandriteArmy",
+  topaz: "topazTroopers",
+};
+
+const upgradeConfig = {
+  nephrite: (level) => 800 + Math.round(level * 450),
+  alexandrite: (level) => 500 + Math.round(level * 320),
+  topaz: (level) => 300 + Math.round(level * 180),
+};
+
 const defaultFleet = {
   mainShips: 0,
   commShips: 0,
@@ -14,6 +26,7 @@ const defaultFleet = {
 
 const Military = () => {
   const [fleet, setFleet] = useState(defaultFleet);
+  const [resources, setResources] = useState({ energy: 0 });
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
   const [error, setError] = useState("");
@@ -31,6 +44,7 @@ const Military = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setFleet({ ...defaultFleet, ...(res.data.game.fleet || {}) });
+        setResources(res.data.game.resources || { energy: 0 });
         setError("");
       } catch (e) {
         setError(e?.response?.data?.error || "Failed to load fleet");
@@ -42,9 +56,11 @@ const Military = () => {
     try {
       setSaving(true);
       const token = localStorage.getItem("token") || "";
-      await axios.post("/api/game/save-fleet", fleet, {
+      const res = await axios.post("/api/game/save-fleet", fleet, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      setFleet(res.data.game.fleet);
+      setResources(res.data.game.resources || { energy: 0 });
       setLastSaved(new Date());
       setError("");
     } catch (e) {
@@ -95,15 +111,6 @@ const Military = () => {
     return "Planetary conquest force deployed";
   }, [fleet.alexandriteArmy]);
 
-  const upgradeConfig = {
-    nephrite: (level) => 800 + Math.round(level * 450),
-    alexandrite: (level) => 500 + Math.round(level * 320),
-    topaz: (level) => 300 + Math.round(level * 180),
-  };
-
-  const canPay = (cost) => (gameResources) =>
-    Number(gameResources.energy || 0) >= cost;
-
   const upgradeBranch = async (branch) => {
     try {
       setUpgrading((s) => ({ ...s, [branch]: true }));
@@ -114,6 +121,7 @@ const Military = () => {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setFleet(res.data.game.fleet);
+      setResources(res.data.game.resources || { energy: 0 });
       setError("");
       setLastSaved(new Date());
     } catch (e) {
@@ -122,6 +130,8 @@ const Military = () => {
       setUpgrading((s) => ({ ...s, [branch]: false }));
     }
   };
+
+  const energy = Number(resources.energy || 0);
 
   return (
     <div style={{ color: "#e2e8f0" }}>
@@ -241,7 +251,10 @@ const Military = () => {
           </div>
           <button
             onClick={() => upgradeBranch("nephrite")}
-            disabled={upgrading.nephrite}
+            disabled={
+              upgrading.nephrite ||
+              energy < upgradeConfig.nephrite(fleet.nephriteNavy.level)
+            }
             style={{ marginTop: 8 }}
             title={`Cost: ${upgradeConfig.nephrite(
               fleet.nephriteNavy.level,
@@ -307,7 +320,10 @@ const Military = () => {
           </div>
           <button
             onClick={() => upgradeBranch("alexandrite")}
-            disabled={upgrading.alexandrite}
+            disabled={
+              upgrading.alexandrite ||
+              energy < upgradeConfig.alexandrite(fleet.alexandriteArmy.level)
+            }
             style={{ marginTop: 8 }}
             title={`Cost: ${upgradeConfig.alexandrite(
               fleet.alexandriteArmy.level,
@@ -373,7 +389,10 @@ const Military = () => {
           </div>
           <button
             onClick={() => upgradeBranch("topaz")}
-            disabled={upgrading.topaz}
+            disabled={
+              upgrading.topaz ||
+              energy < upgradeConfig.topaz(fleet.topazTroopers.level)
+            }
             style={{ marginTop: 8 }}
             title={`Cost: ${upgradeConfig.topaz(
               fleet.topazTroopers.level,
@@ -399,6 +418,9 @@ const Military = () => {
             Last saved {lastSaved.toLocaleTimeString()}
           </span>
         ) : null}
+        <div style={{ fontSize: 12, opacity: 0.7 }}>
+          Energy available: {energy.toLocaleString()}
+        </div>
         <button
           onClick={() => window.location.reload()}
           style={{ marginLeft: "auto" }}

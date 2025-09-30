@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import GameNav from "./GameNav";
 import axios from "axios";
 
@@ -46,6 +46,14 @@ const groupInventory = (inventory) => {
   }
 
   return baseGroups.filter((group) => group.entries.length > 0);
+};
+
+const formatKey = (key) => {
+  if (key.startsWith("refined")) {
+    const base = key.replace(/^refined/, "");
+    return `Refined ${base}`;
+  }
+  return key;
 };
 
 const Inventory = () => {
@@ -184,7 +192,7 @@ const Inventory = () => {
                     textTransform: "capitalize",
                   }}
                 >
-                  {row.key}
+                  {formatKey(row.key)}
                 </td>
                 <td style={{ padding: "10px 12px", textAlign: "right" }}>
                   {Math.floor(row.value).toLocaleString()}

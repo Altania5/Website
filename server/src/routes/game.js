@@ -48,6 +48,16 @@ function ensureGameShape(game) {
   }
   if (!game.inventory || typeof game.inventory !== "object")
     game.inventory = {};
+  const refinedKeys = [
+    "refinedAltanerite",
+    "refinedAlexandrite",
+    "refinedIron",
+    "refinedCopper",
+    "refinedStone",
+  ];
+  for (const key of refinedKeys) {
+    if (typeof game.inventory[key] !== "number") game.inventory[key] = 0;
+  }
   if (!game.fleet || typeof game.fleet !== "object")
     game.fleet = {
       mainShips: 0,
@@ -738,7 +748,7 @@ router.post("/planet-click", async (req, res) => {
   );
 
   const grant = (key, amt) => {
-    if (!game.inventory[key]) game.inventory[key] = 0;
+    if (typeof game.inventory[key] !== "number") game.inventory[key] = 0;
     game.inventory[key] = Number(game.inventory[key] || 0) + amt;
   };
 
@@ -759,9 +769,12 @@ router.post("/planet-click", async (req, res) => {
       Math.round(baseAmount * gatherBoost * refinedMultiplier),
     );
     const key = entry.key;
-    grant(key, boostedAmount);
-    totals[key] = (totals[key] || 0) + boostedAmount;
-    const drop = { key, amount: boostedAmount, refined };
+    const finalKey = refined
+      ? `refined${key[0].toUpperCase()}${key.slice(1)}`
+      : key;
+    grant(finalKey, boostedAmount);
+    totals[finalKey] = (totals[finalKey] || 0) + boostedAmount;
+    const drop = { key: finalKey, amount: boostedAmount, refined };
     drops.push(drop);
     lastGain = drop;
   }

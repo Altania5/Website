@@ -14,7 +14,14 @@ const planetColorMap = {
   fuel: "#facc15",
   plastic: "#fef08a",
   default: "#a7f3d0",
-  refined: "#facc15",
+};
+
+const prettyKey = (key) => {
+  if (key.startsWith("refined")) {
+    const base = key.replace(/^refined/, "");
+    return `Refined ${base}`;
+  }
+  return key;
 };
 
 const PortalHome = () => {
@@ -68,13 +75,14 @@ const PortalHome = () => {
       const jitterX = baseX + index * 18 - 16;
       const jitterY = baseY - index * 26;
       const color = drop.refined
-        ? planetColorMap.refined
-        : planetColorMap[drop.key] || planetColorMap.default;
+        ? "#facc15"
+        : planetColorMap[drop.key.replace(/^refined/i, "").toLowerCase()] ||
+          planetColorMap.default;
       setFloaters((f) => [
         ...f,
         {
           id,
-          text: `+${drop.amount} ${drop.refined ? "Refined " : ""}${drop.key}`,
+          text: `+${drop.amount} ${prettyKey(drop.key)}`,
           x: jitterX,
           y: jitterY,
           color,

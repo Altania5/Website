@@ -264,41 +264,13 @@ const IdleGame = () => {
               </div>
             </div>
             <div style={{ display: "grid", gap: 8 }}>
-              <div
-                style={{
-                  display: "grid",
-                  gap: 8,
-                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                }}
+              <a
+                href="/portal/frequency"
+                className="btn"
+                style={{ textAlign: "center" }}
               >
-                <button
-                  onClick={() => buy("solarPanels")}
-                  disabled={!canAfford({ energy: 50 })}
-                >
-                  Add Solar Panel
-                  <div style={{ fontSize: 12, opacity: 0.75 }}>
-                    Cost: 50 Energy
-                  </div>
-                </button>
-                <button
-                  onClick={() => buy("miners")}
-                  disabled={!canAfford({ energy: 100 })}
-                >
-                  Deploy Miner
-                  <div style={{ fontSize: 12, opacity: 0.75 }}>
-                    Cost: 100 Energy
-                  </div>
-                </button>
-                <button
-                  onClick={() => buy("reactors")}
-                  disabled={!canAfford({ energy: 300, altanerite: 5 })}
-                >
-                  Construct Reactor
-                  <div style={{ fontSize: 12, opacity: 0.75 }}>
-                    Cost: 300 Energy / 5 Altanerite
-                  </div>
-                </button>
-              </div>
+                Manage Power Systems
+              </a>
             </div>
           </div>
 
