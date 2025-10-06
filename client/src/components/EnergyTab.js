@@ -56,17 +56,8 @@ const EnergyTab = () => {
   if (error) return <div style={{ color: "#f87171" }}>{error}</div>;
   if (!game) return null;
 
-  const currentBG =
-    game.location?.mode === "space"
-      ? "/images/space.gif"
-      : game.location?.planet?.toLowerCase() === "zwamsha"
-        ? "/images/zwamsha.gif"
-        : "/images/islands.gif";
   const energy = Math.floor(game.resources?.energy || 0);
   const altanerite = Math.floor(game.resources?.altanerite || 0);
-
-  const canAfford = (cost) =>
-    energy >= (cost.energy || 0) && altanerite >= (cost.altanerite || 0);
 
   return (
     <div style={{ color: "#e2e8f0" }}>
@@ -146,7 +137,10 @@ const EnergyTab = () => {
                         <td style={{ padding: "6px 0", textAlign: "right" }}>
                           <button
                             onClick={() => buy(row.key)}
-                            disabled={!canAfford(cost)}
+                            disabled={
+                              energy < (cost.energy || 0) || 
+                              altanerite < (cost.altanerite || 0)
+                            }
                           >
                             Purchase
                           </button>
@@ -195,13 +189,20 @@ const EnergyTab = () => {
               }
             }}
             style={{
-              background: `url(${currentBG}) center/cover no-repeat`,
+              background: `url(${
+                game.location?.mode === "space"
+                  ? "/images/space.gif"
+                  : game.location?.planet?.toLowerCase() === "zwamsha"
+                    ? "/images/zwamsha.gif"
+                    : "/images/islands.gif"
+              }) center/contain no-repeat`,
               border: "1px solid #1f2937",
               borderRadius: 8,
               height: 320,
               position: "relative",
               overflow: "hidden",
               cursor: "pointer",
+              backgroundColor: "rgba(15,23,42,0.8)",
             }}
             title="Click the planet to collect local resources"
           />

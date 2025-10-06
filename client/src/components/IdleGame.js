@@ -19,7 +19,6 @@ const IdleGame = () => {
   const [game, setGame] = useState(null);
   const [error, setError] = useState("");
   const timerRef = useRef(null);
-  const [system, setSystem] = useState(null);
   const [isHarvesting, setIsHarvesting] = useState(false);
 
   const tokenHeader = {
@@ -82,17 +81,9 @@ const IdleGame = () => {
     }
   };
 
-  const loadSystem = async () => {
-    try {
-      const res = await axios.get("/api/game/system", { headers: tokenHeader });
-      setSystem(res.data);
-    } catch {}
-  };
-
   useEffect(() => {
     fetchState();
     timerRef.current = setInterval(tick, 2000);
-    loadSystem();
     return () => clearInterval(timerRef.current);
   }, []);
 
@@ -226,6 +217,114 @@ const IdleGame = () => {
               </div>
             </div>
           </div>
+
+          {/* High-Tier Items Panel */}
+          {game.inventory && Object.keys(game.inventory).length > 0 && (
+            <div
+              style={{
+                border: "1px solid rgba(148,163,184,0.18)",
+                borderRadius: 16,
+                padding: 18,
+                background: "rgba(15,23,42,0.75)",
+                display: "grid",
+                gap: 12,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <h4 style={{ margin: 0 }}>High-Tier Items</h4>
+                <a 
+                  href="/portal/inventory" 
+                  style={{ 
+                    fontSize: 12, 
+                    color: "#38bdf8",
+                    textDecoration: "none"
+                  }}
+                >
+                  View All
+                </a>
+              </div>
+              <div style={{ display: "grid", gap: 8 }}>
+                {Object.entries(game.inventory)
+                  .filter(([key, value]) => value > 0)
+                  .sort((a, b) => {
+                    // Sort by item rarity/value
+                    const getItemValue = (key) => {
+                      if (key.startsWith("refined")) return 100;
+                      if (["diamond", "gold", "silver"].includes(key)) return 80;
+                      if (["alexandrite", "altanerite"].includes(key)) return 60;
+                      if (["iron", "copper"].includes(key)) return 40;
+                      if (["stone", "fuel", "plastic", "glass", "water"].includes(key)) return 20;
+                      return 10;
+                    };
+                    return getItemValue(b[0]) - getItemValue(a[0]);
+                  })
+                  .slice(0, 5) // Show top 5 items
+                  .map(([key, value]) => {
+                    const formatKey = (key) => {
+                      if (key.startsWith("refined")) {
+                        const base = key.replace(/^refined/, "");
+                        return `Refined ${base.charAt(0).toUpperCase()}${base.slice(1)}`;
+                      }
+                      return key.charAt(0).toUpperCase() + key.slice(1);
+                    };
+                    
+                    const getItemColor = (key) => {
+                      if (key.startsWith("refined")) return "#facc15";
+                      if (["diamond", "gold", "silver"].includes(key)) return "#fbbf24";
+                      if (["alexandrite", "altanerite"].includes(key)) return "#a78bfa";
+                      if (["iron", "copper"].includes(key)) return "#f59e0b";
+                      return "rgba(226,232,240,0.8)";
+                    };
+
+                    return (
+                      <div
+                        key={key}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "6px 8px",
+                          borderRadius: 8,
+                          background: "rgba(148,163,184,0.05)",
+                          border: "1px solid rgba(148,163,184,0.1)",
+                        }}
+                      >
+                        <span style={{ 
+                          color: getItemColor(key),
+                          fontWeight: 500,
+                          fontSize: 13
+                        }}>
+                          {formatKey(key)}
+                        </span>
+                        <span style={{ 
+                          color: "rgba(226,232,240,0.8)",
+                          fontWeight: 600,
+                          fontSize: 13
+                        }}>
+                          {Math.floor(value).toLocaleString()}
+                        </span>
+                      </div>
+                    );
+                  })}
+                {Object.entries(game.inventory).filter(([key, value]) => value > 0).length === 0 && (
+                  <div style={{ 
+                    textAlign: "center", 
+                    color: "rgba(226,232,240,0.6)",
+                    fontSize: 12,
+                    padding: "8px"
+                  }}>
+                    No items collected yet
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div
             style={{
@@ -373,7 +472,9 @@ const IdleGame = () => {
                           padding: "8px 10px",
                         }}
                       >
-                        <span>{entry.key}</span>
+                        <span style={{ textTransform: "capitalize" }}>
+                          {entry.key}
+                        </span>
                         <span style={{ color: "rgba(226,232,240,0.75)" }}>
                           {entry.min} – {entry.max}
                         </span>
@@ -422,12 +523,13 @@ const IdleGame = () => {
           </div>
           <div
             style={{
-              background: `url(${currentBG}) center/cover no-repeat`,
+              background: `url(${currentBG}) center/contain no-repeat`,
               borderRadius: 16,
               border: "1px solid rgba(148,163,184,0.25)",
               height: 320,
               position: "relative",
               overflow: "hidden",
+              backgroundColor: "rgba(15,23,42,0.8)",
             }}
           >
             <div
@@ -441,26 +543,33 @@ const IdleGame = () => {
                 background: "#f59e0b",
               }}
             />
-            {system?.planets?.map((p, i) => (
-              <div
-                key={i}
-                title={p.name}
-                style={{
-                  position: "absolute",
-                  left: 80 + p.distance,
-                  top: 160 - p.size / 2,
-                  width: p.size,
-                  height: p.size,
-                  borderRadius: p.size,
-                  background: p.color,
-                  opacity: p.name === game.location?.planet ? 1 : 0.7,
-                  boxShadow:
-                    p.name === game.location?.planet
-                      ? "0 0 12px rgba(96,165,250,0.65)"
-                      : "none",
-                }}
-              />
-            ))}
+            {/* Placeholder planets - system data removed to fix unused variable */}
+            <div
+              style={{
+                position: "absolute",
+                left: 120,
+                top: 160,
+                width: 20,
+                height: 20,
+                borderRadius: 20,
+                background: "#60a5fa",
+                opacity: 0.7,
+              }}
+              title="Planet 1"
+            />
+            <div
+              style={{
+                position: "absolute",
+                left: 180,
+                top: 150,
+                width: 16,
+                height: 16,
+                borderRadius: 16,
+                background: "#34d399",
+                opacity: 0.7,
+              }}
+              title="Planet 2"
+            />
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {!game.ship?.hasShip ? (

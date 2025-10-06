@@ -2,12 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import GameNav from "./GameNav";
 import axios from "axios";
 
-const branchPaths = {
-  nephrite: "nephriteNavy",
-  alexandrite: "alexandriteArmy",
-  topaz: "topazTroopers",
-};
-
 const upgradeConfig = {
   nephrite: (level) => 800 + Math.round(level * 450),
   alexandrite: (level) => 500 + Math.round(level * 320),

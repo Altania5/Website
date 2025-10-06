@@ -2,14 +2,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import GameNav from "./GameNav";
 
-const typeToImage = {
-  altanerite: "/images/islands.gif",
-  homainionite: "/images/lava.gif",
-  gas: "/images/islands.gif",
-  ice: "/images/islands.gif",
-  rock: "/images/islands.gif",
-};
-
 const GalaxyMap = () => {
   const [system, setSystem] = useState(null);
   const [error, setError] = useState("");
@@ -94,7 +86,7 @@ const GalaxyMap = () => {
       <div
         style={{
           background:
-            "#0b1220 url(/images/zwamshaGalaxy.gif) center/cover no-repeat",
+            "#0b1220 url(/images/zwamshaGalaxy.gif) center/contain no-repeat",
           border: "1px solid #1f2937",
           borderRadius: 8,
           height: 420,
@@ -119,7 +111,7 @@ const GalaxyMap = () => {
             src={
               p.name && p.name.toLowerCase() === "zwamsha"
                 ? "/images/zwamsha.gif"
-                : typeToImage[p.type] || "/images/islands.gif"
+                : "/images/islands.gif"
             }
             alt={p.name}
             onClick={() => land(p.name)}

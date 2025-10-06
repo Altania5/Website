@@ -463,7 +463,6 @@ router.post("/upgrade-ship", async (req, res) => {
 router.get("/system", async (req, res) => {
   if (!ensureMongoConnected(res)) return;
   const userId = req.user.sub;
-  const Game = require("../models/Game");
   const game = await Game.findOne({ userId });
   const systemIndex = game?.systemIndex || 0;
   const system =
@@ -497,7 +496,6 @@ function computeTravelCost(game, distanceSteps) {
 router.post("/travel", async (req, res) => {
   if (!ensureMongoConnected(res)) return;
   const userId = req.user.sub;
-  const Game = require("../models/Game");
   const game = await Game.findOne({ userId });
   if (!game) return res.status(404).json({ error: "Game not started" });
   if (!game.ship.hasShip || game.location.mode !== "space") {
@@ -534,7 +532,6 @@ router.post("/travel", async (req, res) => {
 router.post("/travel-cost", async (req, res) => {
   if (!ensureMongoConnected(res)) return;
   const userId = req.user.sub;
-  const Game = require("../models/Game");
   const game = await Game.findOne({ userId });
   if (!game) return res.status(404).json({ error: "Game not started" });
   const { direction, targetIndex } = req.body;
@@ -562,7 +559,6 @@ router.post("/travel-cost", async (req, res) => {
 router.get("/galaxy", async (req, res) => {
   if (!ensureMongoConnected(res)) return;
   const userId = req.user.sub;
-  const Game = require("../models/Game");
   const game = await Game.findOne({ userId });
   if (!game) return res.status(404).json({ error: "Game not started" });
   const current = game.systemIndex || 0;
@@ -575,7 +571,6 @@ router.get("/galaxy", async (req, res) => {
 router.post("/craft", async (req, res) => {
   if (!ensureMongoConnected(res)) return;
   const userId = req.user.sub;
-  const Game = require("../models/Game");
   const game = await Game.findOne({ userId });
   if (!game) return res.status(404).json({ error: "Game not started" });
   const { type, energyRequired } = req.body;
@@ -591,7 +586,6 @@ router.post("/cancel-craft", async (req, res) => {
   if (!ensureMongoConnected(res)) return;
   const userId = req.user.sub;
   const { index } = req.body;
-  const Game = require("../models/Game");
   const game = await Game.findOne({ userId });
   if (!game) return res.status(404).json({ error: "Game not started" });
   if (!Array.isArray(game.craftingQueue)) game.craftingQueue = [];
@@ -605,7 +599,6 @@ router.post("/cancel-craft", async (req, res) => {
 router.post("/save-fleet", async (req, res) => {
   if (!ensureMongoConnected(res)) return;
   const userId = req.user.sub;
-  const Game = require("../models/Game");
   const game = await Game.findOne({ userId });
   if (!game) return res.status(404).json({ error: "Game not started" });
   const {
@@ -658,7 +651,6 @@ router.post("/save-fleet", async (req, res) => {
 router.post("/allocate-energy", async (req, res) => {
   if (!ensureMongoConnected(res)) return;
   const userId = req.user.sub;
-  const Game = require("../models/Game");
   const game = await Game.findOne({ userId });
   if (!game) return res.status(404).json({ error: "Game not started" });
   const { craftingPct } = req.body; // 0..100
@@ -671,7 +663,6 @@ router.post("/allocate-energy", async (req, res) => {
 router.post("/build-ship", async (req, res) => {
   if (!ensureMongoConnected(res)) return;
   const userId = req.user.sub;
-  const Game = require("../models/Game");
   const game = await Game.findOne({ userId });
   if (!game) return res.status(404).json({ error: "Game not started" });
   if (game.ship.hasShip)
@@ -695,7 +686,6 @@ router.post("/build-ship", async (req, res) => {
 router.post("/launch", async (req, res) => {
   if (!ensureMongoConnected(res)) return;
   const userId = req.user.sub;
-  const Game = require("../models/Game");
   const game = await Game.findOne({ userId });
   if (!game) return res.status(404).json({ error: "Game not started" });
   if (!game.ship.hasShip)
@@ -711,7 +701,6 @@ router.post("/land", async (req, res) => {
   if (!ensureMongoConnected(res)) return;
   const userId = req.user.sub;
   const { planetName } = req.body;
-  const Game = require("../models/Game");
   const game = await Game.findOne({ userId });
   if (!game) return res.status(404).json({ error: "Game not started" });
   if (game.location.mode !== "space")
@@ -726,7 +715,6 @@ router.post("/planet-click", async (req, res) => {
   if (!ensureMongoConnected(res)) return;
   const userId = req.user.sub;
   const { planetName, count } = req.body;
-  const Game = require("../models/Game");
   const game = await Game.findOne({ userId });
   if (!game) return res.status(404).json({ error: "Game not started" });
   if (game.location.mode !== "planet")

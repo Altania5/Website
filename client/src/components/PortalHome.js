@@ -3,25 +3,36 @@ import axios from "axios";
 import GameNav from "./GameNav";
 
 const planetColorMap = {
-  wood: "#86efac",
+  // Basic resources
   stone: "#cbd5e1",
-  iron: "#94a3b8",
+  iron: "#94a3b8", 
   copper: "#f59e0b",
-  alexandrite: "#60a5fa",
   altanerite: "#a78bfa",
-  water: "#93c5fd",
-  glass: "#e5e7eb",
+  alexandrite: "#60a5fa",
+  
+  // Industrial materials
   fuel: "#facc15",
   plastic: "#fef08a",
+  glass: "#e5e7eb",
+  water: "#93c5fd",
+  
+  // Refined materials (created by Alexandrite Army)
+  refinedStone: "#e2e8f0",
+  refinedIron: "#cbd5e1",
+  refinedCopper: "#fbbf24",
+  refinedAltanerite: "#c4b5fd",
+  refinedAlexandrite: "#93c5fd",
+  
+  // Default color for unknown items
   default: "#a7f3d0",
 };
 
 const prettyKey = (key) => {
   if (key.startsWith("refined")) {
     const base = key.replace(/^refined/, "");
-    return `Refined ${base}`;
+    return `Refined ${base.charAt(0).toUpperCase()}${base.slice(1)}`;
   }
-  return key;
+  return key.charAt(0).toUpperCase() + key.slice(1);
 };
 
 const PortalHome = () => {
@@ -430,7 +441,8 @@ const PortalHome = () => {
                 overflow: "hidden",
                 cursor: "pointer",
                 border: "1px solid rgba(148,163,184,0.3)",
-                background: `url(${activePlanet.toLowerCase() === "zwamsha" ? "/images/zwamsha.gif" : "/images/islands.gif"}) center/cover no-repeat`,
+                background: `url(${activePlanet.toLowerCase() === "zwamsha" ? "/images/zwamsha.gif" : "/images/islands.gif"}) center/contain no-repeat`,
+                backgroundColor: "rgba(15,23,42,0.8)",
               }}
               title="Click to gather, double click for burst harvest"
             >
