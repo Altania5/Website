@@ -120,7 +120,7 @@ const FrequencyTab = () => {
             border: "1px solid #1f2937",
             borderRadius: 8,
             padding: 12,
-            background: "#0b1220 url(/images/zwamshaGalaxy.gif) center/cover",
+            background: "#0b1220 url(/images/zwamshaGalaxy.gif) center/contain",
             display: "grid",
             gap: 8,
           }}

@@ -11,6 +11,7 @@ app.use(express.json());
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/game", require("./routes/game"));
+app.use("/api/idle", require("./routes/idleGame"));
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });

@@ -9,7 +9,6 @@ const typeToImage = {
   ice: "/images/ice-planet.gif",
   rock: "/images/islands.gif",
 };
-
 const GalaxyMap = () => {
   const [system, setSystem] = useState(null);
   const [error, setError] = useState("");
@@ -94,7 +93,7 @@ const GalaxyMap = () => {
       <div
         style={{
           background:
-            "#0b1220 url(/images/zwamshaGalaxy.gif) center/cover no-repeat",
+            "#0b1220 url(/images/zwamshaGalaxy.gif) center/contain no-repeat",
           border: "1px solid #1f2937",
           borderRadius: 8,
           height: 420,
