@@ -16,6 +16,12 @@ const EnergyTab = () => {
     Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
   };
 
+  const canAfford = (cost) => {
+    const energy = Number(game?.resources?.energy || 0);
+    const altanerite = Number(game?.resources?.altanerite || 0);
+    return energy >= (cost.energy || 0) && altanerite >= (cost.altanerite || 0);
+  };
+
   const fetchState = async () => {
     try {
       const res = await axios.get("/api/game/state", { headers: tokenHeader });
