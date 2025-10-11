@@ -34,8 +34,11 @@ const GameNav = () => {
       <NavLink to="/portal/home" style={linkStyle}>
         Home
       </NavLink>
-      <NavLink to="/portal/frequency" style={linkStyle}>
+      <NavLink to="/portal/energy" style={linkStyle}>
         Energy
+      </NavLink>
+      <NavLink to="/portal/frequency" style={linkStyle}>
+        Frequency
       </NavLink>
       <NavLink to="/portal/map" style={linkStyle}>
         Map

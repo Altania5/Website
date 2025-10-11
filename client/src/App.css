@@ -19,6 +19,17 @@ button:disabled {
   20% { opacity: 1; }
   100% { opacity: 0; transform: translate(-50%, -36px) scale(1); }
 }
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
 :root {
   --color-teal: #40c49b;
   --color-maroon: #991b1b;

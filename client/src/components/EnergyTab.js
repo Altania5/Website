@@ -3,9 +3,9 @@ import GameNav from "./GameNav";
 import axios from "axios";
 
 const generatorCosts = {
-  solarPanels: { energy: 50 },
-  miners: { energy: 100 },
-  reactors: { energy: 300, altanerite: 5 },
+  solarPanels: { energy: 25 },
+  miners: { energy: 75 },
+  reactors: { energy: 200, altanerite: 3 },
 };
 
 const EnergyTab = () => {
@@ -88,9 +88,15 @@ const EnergyTab = () => {
           >
             <div>
               <strong>Energy</strong>: {energy.toLocaleString()}
+              <div style={{ fontSize: 12, color: "rgba(226,232,240,0.6)" }}>
+                +{Math.floor((game.generators?.solarPanels || 0) * 1.5 + (game.generators?.reactors || 0) * 8 + 2)}/s
+              </div>
             </div>
             <div>
               <strong>Altanerite</strong>: {altanerite.toLocaleString()}
+              <div style={{ fontSize: 12, color: "rgba(226,232,240,0.6)" }}>
+                +{((game.generators?.miners || 0) * 0.3).toFixed(1)}/s
+              </div>
             </div>
             <div style={{ marginTop: 12 }}>
               <h4 style={{ marginTop: 0 }}>Generators</h4>
@@ -161,6 +167,39 @@ const EnergyTab = () => {
               Tip: Reactors consume Altanerite but provide the largest power
               boost.
             </div>
+            {game.ship?.hasShip && (
+              <div style={{ marginTop: 16 }}>
+                <h4 style={{ marginTop: 0 }}>Ship Upgrades</h4>
+                <div style={{ display: "grid", gap: 8 }}>
+                  <div style={{ fontSize: 13 }}>
+                    Current: Level {game.ship.level} • Range {game.ship.range}
+                  </div>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await axios.post(
+                          "/api/game/upgrade-ship",
+                          {},
+                          { headers: tokenHeader },
+                        );
+                        setGame(res.data.game);
+                        setError("");
+                      } catch (e) {
+                        setError(e?.response?.data?.error || "Upgrade failed");
+                      }
+                    }}
+                    disabled={
+                      !canAfford({
+                        energy: game.ship.level * 500,
+                        altanerite: Math.floor(game.ship.level / 2),
+                      })
+                    }
+                  >
+                    Upgrade to Level {game.ship.level + 1} ({game.ship.level * 500} Energy, {Math.floor(game.ship.level / 2)} Altanerite)
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           <div
             style={{

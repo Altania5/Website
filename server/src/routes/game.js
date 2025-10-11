@@ -403,9 +403,9 @@ router.post("/buy-generator", async (req, res) => {
     if (!game) return res.status(404).json({ error: "Game not started" });
     ensureGameShape(game);
     const costs = {
-      solarPanels: { energy: 50 },
-      reactors: { energy: 300, altanerite: 5 },
-      miners: { energy: 100 },
+      solarPanels: { energy: 25 },
+      reactors: { energy: 200, altanerite: 3 },
+      miners: { energy: 75 },
     };
     const cost = costs[type];
     if (!cost) return res.status(400).json({ error: "Invalid generator type" });
@@ -676,7 +676,7 @@ router.post("/build-ship", async (req, res) => {
   if (!game) return res.status(404).json({ error: "Game not started" });
   if (game.ship.hasShip)
     return res.status(400).json({ error: "Ship already built" });
-  const cost = { energy: 500, altanerite: 10 };
+  const cost = { energy: 300, altanerite: 5 };
   if (
     game.resources.energy < cost.energy ||
     game.resources.altanerite < cost.altanerite

@@ -3,10 +3,10 @@ import axios from "axios";
 import GameNav from "./GameNav";
 
 const typeToImage = {
-  altanerite: "/images/islands.gif",
-  homainionite: "/images/lava.gif",
-  gas: "/images/islands.gif",
-  ice: "/images/islands.gif",
+  altanerite: "/images/altanerite-planet.gif",
+  homainionite: "/images/homainionite-planet.gif",
+  gas: "/images/gas-planet.gif",
+  ice: "/images/ice-planet.gif",
   rock: "/images/islands.gif",
 };
 
@@ -114,25 +114,52 @@ const GalaxyMap = () => {
           }}
         />
         {system.planets.map((p, i) => (
-          <img
-            key={i}
-            src={
-              p.name && p.name.toLowerCase() === "zwamsha"
-                ? "/images/zwamsha.gif"
-                : typeToImage[p.type] || "/images/islands.gif"
-            }
-            alt={p.name}
-            onClick={() => land(p.name)}
-            title={`${p.name} • ${p.type} (click to land)`}
-            style={{
-              position: "absolute",
-              left: 120 + p.distance,
-              top: 210 - (p.size || 24) / 2,
-              width: p.size || 24,
-              height: p.size || 24,
-              cursor: "pointer",
-            }}
-          />
+          <div key={i} style={{ position: "relative" }}>
+            <img
+              src={
+                p.name && p.name.toLowerCase() === "zwamsha"
+                  ? "/images/zwamsha.gif"
+                  : typeToImage[p.type] || "/images/islands.gif"
+              }
+              alt={p.name}
+              onClick={() => land(p.name)}
+              title={`${p.name} • ${p.type} • Click to land`}
+              style={{
+                position: "absolute",
+                left: 120 + p.distance,
+                top: 210 - (p.size || 24) / 2,
+                width: p.size || 24,
+                height: p.size || 24,
+                cursor: "pointer",
+                borderRadius: "50%",
+                border: "2px solid rgba(148,163,184,0.3)",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.border = "2px solid #60a5fa";
+                e.target.style.transform = "scale(1.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.border = "2px solid rgba(148,163,184,0.3)";
+                e.target.style.transform = "scale(1)";
+              }}
+            />
+            {/* Planet label */}
+            <div
+              style={{
+                position: "absolute",
+                left: 120 + p.distance - 20,
+                top: 210 + (p.size || 24) / 2 + 5,
+                fontSize: 10,
+                color: "#e2e8f0",
+                textAlign: "center",
+                width: 40,
+                textShadow: "0 1px 2px rgba(0,0,0,0.8)",
+              }}
+            >
+              {p.name}
+            </div>
+          </div>
         ))}
         {/* Current location marker */}
         <div
@@ -147,13 +174,30 @@ const GalaxyMap = () => {
           }}
         />
       </div>
-      <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-        <button onClick={() => travel("prev")}>Prev System</button>
-        <button onClick={() => travel("next")}>Next System</button>
-        <button onClick={launch}>Launch (must have ship)</button>
+      <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <button 
+          onClick={() => travel("prev")}
+          style={{ padding: "8px 16px", background: "#3b82f6", color: "white", border: "none", borderRadius: 6 }}
+        >
+          ← Previous System
+        </button>
+        <button 
+          onClick={() => travel("next")}
+          style={{ padding: "8px 16px", background: "#3b82f6", color: "white", border: "none", borderRadius: 6 }}
+        >
+          Next System →
+        </button>
+        <button 
+          onClick={launch}
+          style={{ padding: "8px 16px", background: "#10b981", color: "white", border: "none", borderRadius: 6 }}
+        >
+          Launch Ship
+        </button>
       </div>
-      <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>
-        Deeper map intel coming soon.
+      <div style={{ marginTop: 12, fontSize: 12, opacity: 0.7 }}>
+        <div>💡 Tip: Travel costs increase with fleet size and distance</div>
+        <div>🚀 Ship range determines maximum travel distance</div>
+        <div>⚡ Energy is consumed for interstellar travel</div>
       </div>
     </div>
   );

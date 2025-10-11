@@ -204,9 +204,14 @@ const PortalHome = () => {
                     }}
                   >
                     <span>Energy</span>
-                    <strong>
-                      {Math.floor(game.resources?.energy || 0).toLocaleString()}
-                    </strong>
+                    <div style={{ textAlign: "right" }}>
+                      <strong>
+                        {Math.floor(game.resources?.energy || 0).toLocaleString()}
+                      </strong>
+                      <div style={{ fontSize: 11, color: "rgba(148,163,184,0.6)" }}>
+                        +{Math.floor((game.generators?.solarPanels || 0) * 1.5 + (game.generators?.reactors || 0) * 8 + 2)}/s
+                      </div>
+                    </div>
                   </div>
                   <div
                     style={{
@@ -216,9 +221,14 @@ const PortalHome = () => {
                     }}
                   >
                     <span>Altanerite</span>
-                    <strong>
-                      {Math.floor(game.resources?.altanerite || 0)}
-                    </strong>
+                    <div style={{ textAlign: "right" }}>
+                      <strong>
+                        {Math.floor(game.resources?.altanerite || 0)}
+                      </strong>
+                      <div style={{ fontSize: 11, color: "rgba(148,163,184,0.6)" }}>
+                        +{((game.generators?.miners || 0) * 0.3).toFixed(1)}/s
+                      </div>
+                    </div>
                   </div>
                   <div
                     style={{
@@ -228,9 +238,14 @@ const PortalHome = () => {
                     }}
                   >
                     <span>Homainionite</span>
-                    <strong>
-                      {Math.floor(game.resources?.homainionite || 0)}
-                    </strong>
+                    <div style={{ textAlign: "right" }}>
+                      <strong>
+                        {Math.floor(game.resources?.homainionite || 0)}
+                      </strong>
+                      <div style={{ fontSize: 11, color: "rgba(148,163,184,0.6)" }}>
+                        +{((game.generators?.miners || 0) * 0.08).toFixed(2)}/s
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

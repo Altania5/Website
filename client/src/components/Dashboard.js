@@ -6,7 +6,7 @@ const onboardingSteps = [
     title: "Build Power",
     description:
       "Visit the Energy tab to purchase generators and boost energy production.",
-    link: "/portal/frequency",
+    link: "/portal/energy",
   },
   {
     title: "Harvest Resources",
@@ -100,7 +100,7 @@ const Dashboard = () => {
             <div style={{ marginTop: 8 }}>
               <a href="/portal/home">Track Colony</a>
               <span style={{ margin: "0 8px" }}>|</span>
-              <a href="/portal/frequency">Manage Power</a>
+              <a href="/portal/energy">Manage Power</a>
               <span style={{ margin: "0 8px" }}>|</span>
               <a href="/portal/map">Map</a>
             </div>

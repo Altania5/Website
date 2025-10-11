@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node server/index.js",
+    "start": "concurrently --kill-others --names \"SERVER,CLIENT\" --prefix-colors \"cyan,magenta\" \"npm run server\" \"npm run client\"",
     "heroku-postbuild": "npm install --prefix client && npm run build --prefix client",
     "server": "npm run start --prefix server",
     "client": "npm run start --prefix client",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "dev": "concurrently --kill-others --names \"SERVER,CLIENT\" --prefix-colors \"cyan,magenta\" \"npm run server\" \"npm run client\"",
+    "server-only": "node server/index.js"
   },
   "engines": {
     "node": ">=18.0.0"

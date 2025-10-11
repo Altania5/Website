@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import axios from "axios";
 import GameNav from "./GameNav";
+import useGameLoop from "../hooks/useGameLoop";
+import useToast from "../hooks/useToast";
+import ToastContainer from "./Toast";
 
 const boostSummary = (game) => {
   if (!game?.fleet) return null;
@@ -18,9 +21,10 @@ const boostSummary = (game) => {
 const IdleGame = () => {
   const [game, setGame] = useState(null);
   const [error, setError] = useState("");
-  const timerRef = useRef(null);
   const [system, setSystem] = useState(null);
   const [isHarvesting, setIsHarvesting] = useState(false);
+  const { pauseLoop, resumeLoop } = useGameLoop(2000);
+  const { toasts, removeToast, success, error: showError } = useToast();
 
   const tokenHeader = {
     Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
@@ -91,9 +95,7 @@ const IdleGame = () => {
 
   useEffect(() => {
     fetchState();
-    timerRef.current = setInterval(tick, 2000);
     loadSystem();
-    return () => clearInterval(timerRef.current);
   }, []);
 
   const buildShip = async () => {
@@ -104,8 +106,9 @@ const IdleGame = () => {
         { headers: tokenHeader },
       );
       setGame(res.data.game);
+      success("🚀 Ship built successfully!");
     } catch (e) {
-      alert(e?.response?.data?.error || "Build failed");
+      showError(e?.response?.data?.error || "Build failed");
     }
   };
 
@@ -117,8 +120,9 @@ const IdleGame = () => {
         { headers: tokenHeader },
       );
       setGame(res.data.game);
+      success("🚀 Launched into space!");
     } catch (e) {
-      alert(e?.response?.data?.error || "Launch failed");
+      showError(e?.response?.data?.error || "Launch failed");
     }
   };
 
@@ -130,8 +134,9 @@ const IdleGame = () => {
         { headers: tokenHeader },
       );
       setGame(res.data.game);
+      success(`🌍 Landed on ${planetName}!`);
     } catch (e) {
-      alert(e?.response?.data?.error || "Landing failed");
+      showError(e?.response?.data?.error || "Landing failed");
     }
   };
 
@@ -157,7 +162,25 @@ const IdleGame = () => {
 
   return (
     <div style={{ color: "#e2e8f0" }}>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
       <GameNav />
+      <div style={{ marginBottom: 12, display: "flex", gap: 8, alignItems: "center" }}>
+        <button
+          onClick={pauseLoop}
+          style={{ padding: "4px 8px", fontSize: 12, background: "#f59e0b", color: "white", border: "none", borderRadius: 4 }}
+        >
+          ⏸️ Pause
+        </button>
+        <button
+          onClick={resumeLoop}
+          style={{ padding: "4px 8px", fontSize: 12, background: "#10b981", color: "white", border: "none", borderRadius: 4 }}
+        >
+          ▶️ Resume
+        </button>
+        <span style={{ fontSize: 12, color: "rgba(226,232,240,0.6)" }}>
+          Game loop: Active
+        </span>
+      </div>
       <div
         style={{
           display: "grid",
@@ -199,6 +222,33 @@ const IdleGame = () => {
                   ? `Lv ${game.ship.level} • Range ${game.ship.range}`
                   : "None"}
               </div>
+              {game.ship?.hasShip && (
+                <div style={{ marginTop: 8 }}>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await axios.post(
+                          "/api/game/upgrade-ship",
+                          {},
+                          { headers: tokenHeader },
+                        );
+                        setGame(res.data.game);
+                      } catch (e) {
+                        alert(e?.response?.data?.error || "Upgrade failed");
+                      }
+                    }}
+                    disabled={
+                      !canAfford({
+                        energy: game.ship.level * 500,
+                        altanerite: Math.floor(game.ship.level / 2),
+                      })
+                    }
+                    style={{ fontSize: 12, padding: "4px 8px" }}
+                  >
+                    Upgrade Ship ({game.ship.level * 500} Energy, {Math.floor(game.ship.level / 2)} Altanerite)
+                  </button>
+                </div>
+              )}
             </div>
             <div
               style={{
@@ -212,17 +262,32 @@ const IdleGame = () => {
             >
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span>Energy</span>
-                <strong>
-                  {Math.floor(game.resources?.energy || 0).toLocaleString()}
-                </strong>
+                <div style={{ textAlign: "right" }}>
+                  <strong>
+                    {Math.floor(game.resources?.energy || 0).toLocaleString()}
+                  </strong>
+                  <div style={{ fontSize: 11, color: "rgba(226,232,240,0.6)" }}>
+                    +{Math.floor((game.generators?.solarPanels || 0) * 1.5 + (game.generators?.reactors || 0) * 8 + 2)}/s
+                  </div>
+                </div>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span>Altanerite</span>
-                <strong>{Math.floor(game.resources?.altanerite || 0)}</strong>
+                <div style={{ textAlign: "right" }}>
+                  <strong>{Math.floor(game.resources?.altanerite || 0)}</strong>
+                  <div style={{ fontSize: 11, color: "rgba(226,232,240,0.6)" }}>
+                    +{((game.generators?.miners || 0) * 0.3).toFixed(1)}/s
+                  </div>
+                </div>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span>Homainionite</span>
-                <strong>{Math.floor(game.resources?.homainionite || 0)}</strong>
+                <div style={{ textAlign: "right" }}>
+                  <strong>{Math.floor(game.resources?.homainionite || 0)}</strong>
+                  <div style={{ fontSize: 11, color: "rgba(226,232,240,0.6)" }}>
+                    +{((game.generators?.miners || 0) * 0.08).toFixed(2)}/s
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -265,7 +330,7 @@ const IdleGame = () => {
             </div>
             <div style={{ display: "grid", gap: 8 }}>
               <a
-                href="/portal/frequency"
+                href="/portal/energy"
                 className="btn"
                 style={{ textAlign: "center" }}
               >
@@ -465,7 +530,7 @@ const IdleGame = () => {
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {!game.ship?.hasShip ? (
               <button onClick={buildShip}>
-                Build Ship (500 energy, 10 Altanerite)
+                Build Ship (300 energy, 5 Altanerite)
               </button>
             ) : game.location?.mode === "planet" ? (
               <button onClick={launch}>Launch to Space</button>

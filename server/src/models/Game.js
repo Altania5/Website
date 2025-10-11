@@ -104,9 +104,12 @@ gameSchema.methods.getProductionRatesPerSecond = function () {
   );
   const reactors = Number((this.generators && this.generators.reactors) || 0);
   const miners = Number((this.generators && this.generators.miners) || 0);
-  const energyRate = 1 + solarPanels * 1 + reactors * 5;
-  const altaneriteRate = miners * 0.2;
-  const homainioniteRate = miners * 0.05;
+  
+  // Balanced production rates for better progression
+  const energyRate = 2 + solarPanels * 1.5 + reactors * 8;
+  const altaneriteRate = miners * 0.3;
+  const homainioniteRate = miners * 0.08;
+  
   return {
     energy: energyRate,
     altanerite: altaneriteRate,

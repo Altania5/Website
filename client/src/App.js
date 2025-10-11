@@ -53,6 +53,16 @@ const App = () => {
             }
           />
           <Route
+            path="/portal/energy"
+            element={
+              <RequireAuth>
+                <PortalLayout>
+                  <EnergyTab />
+                </PortalLayout>
+              </RequireAuth>
+            }
+          />
+          <Route
             path="/portal/frequency"
             element={
               <RequireAuth>

@@ -216,22 +216,29 @@ const Military = () => {
             </div>
           </div>
           <div style={{ display: "grid", gap: 10 }}>
-            <label style={{ display: "grid", gap: 4 }}>
-              <span>Command Ships</span>
-              <input
-                type="number"
-                value={fleet.nephriteNavy.count}
-                onChange={(e) =>
-                  setFleet({
-                    ...fleet,
-                    nephriteNavy: {
-                      ...fleet.nephriteNavy,
-                      count: num(e.target.value),
-                    },
-                  })
-                }
-              />
-            </label>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>Command Ships: {fleet.nephriteNavy.count}</span>
+              <button
+                onClick={() => {
+                  const cost = fleet.nephriteNavy.count * 1000 + 500;
+                  if (energy >= cost) {
+                    setFleet({
+                      ...fleet,
+                      nephriteNavy: {
+                        ...fleet.nephriteNavy,
+                        count: fleet.nephriteNavy.count + 1,
+                      },
+                    });
+                  } else {
+                    alert(`Need ${cost} energy to recruit`);
+                  }
+                }}
+                disabled={energy < (fleet.nephriteNavy.count * 1000 + 500)}
+                style={{ fontSize: 12, padding: "4px 8px" }}
+              >
+                Recruit ({fleet.nephriteNavy.count * 1000 + 500} Energy)
+              </button>
+            </div>
             <label style={{ display: "grid", gap: 4 }}>
               <span>Command Doctrine Level</span>
               <input
@@ -285,22 +292,29 @@ const Military = () => {
             </p>
           </div>
           <div style={{ display: "grid", gap: 10 }}>
-            <label>
-              <span>Division Count</span>
-              <input
-                type="number"
-                value={fleet.alexandriteArmy.count}
-                onChange={(e) =>
-                  setFleet({
-                    ...fleet,
-                    alexandriteArmy: {
-                      ...fleet.alexandriteArmy,
-                      count: num(e.target.value),
-                    },
-                  })
-                }
-              />
-            </label>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>Divisions: {fleet.alexandriteArmy.count}</span>
+              <button
+                onClick={() => {
+                  const cost = fleet.alexandriteArmy.count * 800 + 300;
+                  if (energy >= cost) {
+                    setFleet({
+                      ...fleet,
+                      alexandriteArmy: {
+                        ...fleet.alexandriteArmy,
+                        count: fleet.alexandriteArmy.count + 1,
+                      },
+                    });
+                  } else {
+                    alert(`Need ${cost} energy to recruit`);
+                  }
+                }}
+                disabled={energy < (fleet.alexandriteArmy.count * 800 + 300)}
+                style={{ fontSize: 12, padding: "4px 8px" }}
+              >
+                Recruit ({fleet.alexandriteArmy.count * 800 + 300} Energy)
+              </button>
+            </div>
             <label>
               <span>Invasion Doctrine Level</span>
               <input
@@ -354,22 +368,29 @@ const Military = () => {
             </p>
           </div>
           <div style={{ display: "grid", gap: 10 }}>
-            <label>
-              <span>Trooper Companies</span>
-              <input
-                type="number"
-                value={fleet.topazTroopers.count}
-                onChange={(e) =>
-                  setFleet({
-                    ...fleet,
-                    topazTroopers: {
-                      ...fleet.topazTroopers,
-                      count: num(e.target.value),
-                    },
-                  })
-                }
-              />
-            </label>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>Companies: {fleet.topazTroopers.count}</span>
+              <button
+                onClick={() => {
+                  const cost = fleet.topazTroopers.count * 600 + 200;
+                  if (energy >= cost) {
+                    setFleet({
+                      ...fleet,
+                      topazTroopers: {
+                        ...fleet.topazTroopers,
+                        count: fleet.topazTroopers.count + 1,
+                      },
+                    });
+                  } else {
+                    alert(`Need ${cost} energy to recruit`);
+                  }
+                }}
+                disabled={energy < (fleet.topazTroopers.count * 600 + 200)}
+                style={{ fontSize: 12, padding: "4px 8px" }}
+              >
+                Recruit ({fleet.topazTroopers.count * 600 + 200} Energy)
+              </button>
+            </div>
             <label>
               <span>Planetary Optimization Level</span>
               <input

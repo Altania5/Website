@@ -128,6 +128,83 @@ const Inventory = () => {
         Total Units: <strong>{Math.floor(totalUnits).toLocaleString()}</strong>
       </div>
 
+      {/* Crafting Queue */}
+      <div style={{ marginTop: 16 }}>
+        <h4>Crafting Queue</h4>
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span>Energy Allocation:</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={alloc}
+              onChange={(e) => setAlloc(Number(e.target.value))}
+              style={{ width: 100 }}
+            />
+            <span>{alloc}%</span>
+            <button onClick={saveAlloc} style={{ fontSize: 12, padding: "4px 8px" }}>
+              Save
+            </button>
+          </label>
+        </div>
+        <div style={{ display: "grid", gap: 8 }}>
+          {queue.length === 0 ? (
+            <div style={{ color: "rgba(226,232,240,0.6)", fontStyle: "italic" }}>
+              No crafting jobs in queue
+            </div>
+          ) : (
+            queue.map((job, index) => (
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "8px 12px",
+                  background: "rgba(148,163,184,0.08)",
+                  borderRadius: 8,
+                  border: "1px solid rgba(148,163,184,0.16)",
+                }}
+              >
+                <div>
+                  <strong>{job.type}</strong>
+                  <div style={{ fontSize: 12, color: "rgba(226,232,240,0.6)" }}>
+                    {job.remainingEnergy} energy remaining
+                  </div>
+                </div>
+                <button
+                  onClick={() => cancelJob(index)}
+                  style={{ fontSize: 12, padding: "4px 8px", background: "#dc2626" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <button
+            onClick={() => addJob("refinedAltanerite", 1000)}
+            style={{ marginRight: 8, fontSize: 12, padding: "6px 12px" }}
+          >
+            Craft Refined Altanerite (1000 Energy)
+          </button>
+          <button
+            onClick={() => addJob("refinedAlexandrite", 1200)}
+            style={{ marginRight: 8, fontSize: 12, padding: "6px 12px" }}
+          >
+            Craft Refined Alexandrite (1200 Energy)
+          </button>
+          <button
+            onClick={() => addJob("refinedIron", 800)}
+            style={{ fontSize: 12, padding: "6px 12px" }}
+          >
+            Craft Refined Iron (800 Energy)
+          </button>
+        </div>
+      </div>
+
       <table
         style={{
           marginTop: 16,
