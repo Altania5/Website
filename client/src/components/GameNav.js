@@ -49,6 +49,9 @@ const GameNav = () => {
       <NavLink to="/portal/inventory" style={linkStyle}>
         Inventory
       </NavLink>
+      <NavLink to="/portal/game-v2" style={linkStyle}>
+        WebGL Game
+      </NavLink>
     </div>
   );
 };

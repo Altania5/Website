@@ -30,6 +30,66 @@ button:disabled {
     opacity: 1;
   }
 }
+
+@keyframes floatUp {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -80px) scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -120px) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes planetPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes planetIdle {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.02) rotate(1deg);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes counterIncrement {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+    color: #10b981;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
 :root {
   --color-teal: #40c49b;
   --color-maroon: #991b1b;

@@ -20,6 +20,7 @@ import GameSettings from "./components/GameSettings";
 import PortalHome from "./components/PortalHome";
 import EnergyTab from "./components/EnergyTab";
 import FrequencyTab from "./components/FrequencyTab";
+import PhaserGame from "./components/PhaserGame";
 import "./App.css";
 
 const App = () => {
@@ -79,6 +80,14 @@ const App = () => {
                 <PortalLayout>
                   <IdleGame />
                 </PortalLayout>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/portal/game-v2"
+            element={
+              <RequireAuth>
+                <PhaserGame />
               </RequireAuth>
             }
           />

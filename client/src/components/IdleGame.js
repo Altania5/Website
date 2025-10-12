@@ -1,27 +1,26 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import GameNav from "./GameNav";
 import useGameLoop from "../hooks/useGameLoop";
 import useToast from "../hooks/useToast";
 import ToastContainer from "./Toast";
 
-const boostSummary = (game) => {
-  if (!game?.fleet) return null;
-  const lines = [];
-  if (game.fleet.topazTroopers?.count) {
-    lines.push("Topaz Troopers accelerate planetary harvesting");
-  }
-  if (game.fleet.alexandriteArmy?.count) {
-    lines.push("Alexandrite Army increases refined resource finds");
-  }
-  if (!lines.length) return null;
-  return lines.join(" • ");
-};
+// Removed unused boostSummary function
 
 const IdleGame = () => {
   const [game, setGame] = useState(null);
+  const [system, setSystem] = useState(null);
   const [error, setError] = useState("");
   const [isHarvesting, setIsHarvesting] = useState(false);
+  const [sessionStats, setSessionStats] = useState({
+    clicks: 0,
+    resourcesGained: {},
+    startTime: Date.now(),
+    lastClicks: [],
+    highestDrop: 0
+  });
+  const [recentHarvests, setRecentHarvests] = useState([]);
+  const [autoHarvest, setAutoHarvest] = useState(false);
   const { pauseLoop, resumeLoop } = useGameLoop(2000);
   const { toasts, removeToast, success, error: showError } = useToast();
 
@@ -37,7 +36,7 @@ const IdleGame = () => {
     );
   };
 
-  const fetchState = async () => {
+  const fetchState = useCallback(async () => {
     try {
       const res = await axios.get("/api/game/state", { headers: tokenHeader });
       setGame(res.data.game);
@@ -59,35 +58,25 @@ const IdleGame = () => {
       }
       setError(e?.response?.data?.error || "Failed to load game state");
     }
-  };
+  }, [tokenHeader]);
 
-  const tick = async () => {
+  const loadSystem = useCallback(async () => {
     try {
-      const res = await axios.post(
-        "/api/game/tick",
-        {},
-        { headers: tokenHeader },
-      );
-      setGame(res.data.game);
-    } catch {}
-  };
-
-  const buy = async (type) => {
-    try {
-      const res = await axios.post(
-        "/api/game/buy-generator",
-        { type },
-        { headers: tokenHeader },
-      );
-      setGame(res.data.game);
+      const res = await axios.get("/api/game/system", { headers: tokenHeader });
+      setSystem(res.data);
     } catch (e) {
-      alert(e?.response?.data?.error || "Purchase failed");
+      console.error("Failed to load system:", e);
     }
-  };
+  }, [tokenHeader]);
 
   useEffect(() => {
     fetchState();
-  }, []);
+    loadSystem();
+    
+    // Load auto-harvest preference
+    const savedAutoHarvest = localStorage.getItem("autoHarvest") === "true";
+    setAutoHarvest(savedAutoHarvest);
+  }, [fetchState, loadSystem]);
 
   const buildShip = async () => {
     try {
@@ -131,6 +120,147 @@ const IdleGame = () => {
     }
   };
 
+  const handlePlanetClick = useCallback(async (count = 1) => {
+    if (!game?.location || game.location.mode !== "planet") {
+      showError("You must be on a planet to harvest!");
+      return;
+    }
+
+    try {
+      setIsHarvesting(true);
+      const res = await axios.post(
+        "/api/game/planet-click",
+        { planetName: game.location.planet, count },
+        { headers: tokenHeader },
+      );
+      
+      setGame(res.data.game);
+      
+      // Update session stats
+      setSessionStats(prev => {
+        const newClicks = prev.clicks + count;
+        const newLastClicks = [...prev.lastClicks, Date.now()].slice(-10);
+        const newResourcesGained = { ...prev.resourcesGained };
+        
+        // Add gained resources
+        res.data.gains?.forEach(gain => {
+          newResourcesGained[gain.key] = (newResourcesGained[gain.key] || 0) + gain.amount;
+        });
+        
+        // Track highest drop
+        const highestDrop = Math.max(
+          prev.highestDrop,
+          ...res.data.gains.map(g => g.amount)
+        );
+        
+        return {
+          ...prev,
+          clicks: newClicks,
+          lastClicks: newLastClicks,
+          resourcesGained: newResourcesGained,
+          highestDrop
+        };
+      });
+      
+      // Add to recent harvests
+      const harvestEntry = {
+        id: Date.now(),
+        timestamp: new Date(),
+        gains: res.data.gains || [],
+        drops: res.data.drops || [],
+        gatherBoost: res.data.gatherBoost || 1,
+        qualityBoost: res.data.qualityBoost || 1
+      };
+      
+      setRecentHarvests(prev => [harvestEntry, ...prev].slice(0, 5));
+      
+      // Show floating numbers animation
+      res.data.gains?.forEach(gain => {
+        showFloatingNumber(gain.key, gain.amount);
+      });
+      
+      if (count === 1) {
+        success(`Harvested ${res.data.gains?.length || 0} resources!`);
+      } else {
+        success(`Harvested ${count} times!`);
+      }
+      
+    } catch (e) {
+      showError(e?.response?.data?.error || "Harvest failed");
+    } finally {
+      setIsHarvesting(false);
+    }
+  }, [game?.location, showError, tokenHeader, showFloatingNumber, success]);
+
+  const showFloatingNumber = (resourceKey, amount) => {
+    // Create floating number element
+    const floatingEl = document.createElement('div');
+    floatingEl.textContent = `+${amount} ${resourceKey}`;
+    floatingEl.style.cssText = `
+      position: fixed;
+      pointer-events: none;
+      z-index: 10000;
+      color: ${getResourceColor(resourceKey)};
+      font-weight: bold;
+      font-size: 14px;
+      text-shadow: 0 0 4px rgba(0,0,0,0.8);
+      animation: floatUp 2s ease-out forwards;
+    `;
+    
+    // Position near planet
+    const planetEl = document.querySelector('.clickable-planet');
+    if (planetEl) {
+      const rect = planetEl.getBoundingClientRect();
+      floatingEl.style.left = (rect.left + rect.width / 2) + 'px';
+      floatingEl.style.top = (rect.top + rect.height / 2) + 'px';
+    } else {
+      floatingEl.style.left = '50%';
+      floatingEl.style.top = '50%';
+    }
+    
+    document.body.appendChild(floatingEl);
+    
+    // Remove after animation
+    setTimeout(() => {
+      if (floatingEl.parentNode) {
+        floatingEl.parentNode.removeChild(floatingEl);
+      }
+    }, 2000);
+  };
+
+  const getResourceColor = (resourceKey) => {
+    if (resourceKey.startsWith("refined")) return "#facc15";
+    if (["diamond", "gold", "silver"].includes(resourceKey)) return "#fbbf24";
+    if (["alexandrite", "altanerite"].includes(resourceKey)) return "#a78bfa";
+    if (["iron", "copper"].includes(resourceKey)) return "#f59e0b";
+    return "#e2e8f0";
+  };
+
+  const toggleAutoHarvest = () => {
+    const newAutoHarvest = !autoHarvest;
+    setAutoHarvest(newAutoHarvest);
+    localStorage.setItem("autoHarvest", newAutoHarvest.toString());
+    
+    if (newAutoHarvest) {
+      success("Auto-harvest enabled!");
+    } else {
+      success("Auto-harvest disabled!");
+    }
+  };
+
+  // Auto-harvest effect
+  useEffect(() => {
+    if (!autoHarvest || !game?.location || game.location.mode !== "planet") {
+      return;
+    }
+    
+    const interval = setInterval(() => {
+      handlePlanetClick(1);
+    }, 1500);
+    
+    return () => clearInterval(interval);
+  }, [autoHarvest, game?.location, handlePlanetClick]);
+
   const currentBG =
     game?.location?.mode === "space"
       ? "/images/space.gif"
@@ -140,7 +270,6 @@ const IdleGame = () => {
     [game?.location?.planetLoot],
   );
   const isOnPlanet = game?.location?.mode === "planet";
-  const boosts = boostSummary(game);
 
   const canAfford = (cost) => {
     const energy = Number(game.resources?.energy || 0);
@@ -241,6 +370,56 @@ const IdleGame = () => {
                 </div>
               )}
             </div>
+            {/* Session Stats */}
+            <div
+              style={{
+                marginTop: 16,
+                padding: 14,
+                borderRadius: 12,
+                background: "rgba(148,163,184,0.08)",
+                display: "grid",
+                gap: 8,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.5,
+                  color: "rgba(226,232,240,0.6)",
+                  marginBottom: 4,
+                }}
+              >
+                Session Stats
+              </div>
+              <div style={{ display: "grid", gap: 6 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>Time Played:</span>
+                  <span style={{ fontWeight: "bold" }}>
+                    {Math.floor((Date.now() - sessionStats.startTime) / 60000)}m
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>Total Clicks:</span>
+                  <span style={{ fontWeight: "bold", color: "#10b981" }}>
+                    {sessionStats.clicks}
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>Resources Gained:</span>
+                  <span style={{ fontWeight: "bold" }}>
+                    {Object.keys(sessionStats.resourcesGained).length}
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>Highest Drop:</span>
+                  <span style={{ fontWeight: "bold", color: "#f59e0b" }}>
+                    {sessionStats.highestDrop}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
             <div
               style={{
                 marginTop: 16,
@@ -282,6 +461,79 @@ const IdleGame = () => {
               </div>
             </div>
           </div>
+
+          {/* Recent Harvests Panel */}
+          {recentHarvests.length > 0 && (
+            <div
+              style={{
+                border: "1px solid rgba(148,163,184,0.18)",
+                borderRadius: 16,
+                padding: 18,
+                background: "rgba(15,23,42,0.75)",
+                display: "grid",
+                gap: 12,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <h4 style={{ margin: 0 }}>Recent Harvests</h4>
+                <span style={{ fontSize: 12, color: "rgba(226,232,240,0.6)" }}>
+                  Last 5
+                </span>
+              </div>
+              <div style={{ display: "grid", gap: 8 }}>
+                {recentHarvests.map((harvest) => (
+                  <div
+                    key={harvest.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      background: "rgba(148,163,184,0.08)",
+                      border: "1px solid rgba(148,163,184,0.16)",
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 12, color: "rgba(226,232,240,0.8)" }}>
+                        {harvest.timestamp.toLocaleTimeString()}
+                      </div>
+                      <div style={{ fontSize: 11, color: "rgba(226,232,240,0.6)" }}>
+                        {harvest.gains.length} resources • 
+                        {harvest.gatherBoost > 1 && ` ${harvest.gatherBoost.toFixed(1)}x speed`}
+                        {harvest.qualityBoost > 1 && ` • ${harvest.qualityBoost.toFixed(1)}x quality`}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                      {harvest.gains.slice(0, 3).map((gain, idx) => (
+                        <span
+                          key={idx}
+                          style={{
+                            fontSize: 10,
+                            color: getResourceColor(gain.key),
+                            fontWeight: "bold",
+                          }}
+                        >
+                          +{gain.amount}
+                        </span>
+                      ))}
+                      {harvest.gains.length > 3 && (
+                        <span style={{ fontSize: 10, color: "rgba(226,232,240,0.6)" }}>
+                          +{harvest.gains.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* High-Tier Items Panel */}
           {game.inventory && Object.keys(game.inventory).length > 0 && (
@@ -435,6 +687,20 @@ const IdleGame = () => {
               >
                 Manage Power Systems
               </a>
+              <a
+                href="/portal/military"
+                className="btn"
+                style={{ textAlign: "center" }}
+              >
+                Military Forces
+              </a>
+              <a
+                href="/portal/inventory"
+                className="btn"
+                style={{ textAlign: "center" }}
+              >
+                View Inventory
+              </a>
             </div>
           </div>
 
@@ -466,7 +732,8 @@ const IdleGame = () => {
                   {isHarvesting ? "Gathering..." : "Ready"}
                 </span>
               </div>
-              {boosts ? (
+              {/* Active Boost Indicators */}
+              {game?.fleet && (
                 <div
                   style={{
                     fontSize: 12,
@@ -474,11 +741,41 @@ const IdleGame = () => {
                     background: "rgba(148,163,184,0.08)",
                     borderRadius: 8,
                     padding: "8px 10px",
+                    display: "grid",
+                    gap: 4,
                   }}
                 >
-                  {boosts}
+                  {game.fleet.topazTroopers?.count > 0 && (
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>⚡ Gather Speed:</span>
+                      <span style={{ color: "#10b981", fontWeight: "bold" }}>
+                        {(1 + game.fleet.topazTroopers.count * 0.1).toFixed(1)}x
+                      </span>
+                    </div>
+                  )}
+                  {game.fleet.alexandriteArmy?.count > 0 && (
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>✨ Quality Boost:</span>
+                      <span style={{ color: "#8b5cf6", fontWeight: "bold" }}>
+                        {(1 + game.fleet.alexandriteArmy.count * 0.15).toFixed(1)}x
+                      </span>
+                    </div>
+                  )}
+                  {game.fleet.nephriteNavy?.count > 0 && (
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>🚀 Navy Power:</span>
+                      <span style={{ color: "#3b82f6", fontWeight: "bold" }}>
+                        Level {game.fleet.nephriteNavy.level}
+                      </span>
+                    </div>
+                  )}
+                  {!game.fleet.topazTroopers?.count && !game.fleet.alexandriteArmy?.count && !game.fleet.nephriteNavy?.count && (
+                    <div style={{ fontStyle: "italic", opacity: 0.6 }}>
+                      No active military boosts
+                    </div>
+                  )}
                 </div>
-              ) : null}
+              )}
               <div style={{ display: "flex", gap: 8 }}>
                 <a
                   href="/portal/home"
@@ -608,34 +905,215 @@ const IdleGame = () => {
                 background: "#f59e0b",
               }}
             />
-            {/* Placeholder planets - system data removed to fix unused variable */}
-            <div
-              style={{
-                position: "absolute",
-                left: 120,
-                top: 160,
-                width: 20,
-                height: 20,
-                borderRadius: 20,
-                background: "#60a5fa",
-                opacity: 0.7,
-              }}
-              title="Planet 1"
-            />
-            <div
-              style={{
-                position: "absolute",
-                left: 180,
-                top: 150,
-                width: 16,
-                height: 16,
-                borderRadius: 16,
-                background: "#34d399",
-                opacity: 0.7,
-              }}
-              title="Planet 2"
-            />
+            {/* Large Clickable Planet */}
+            {game?.location?.mode === "planet" && (
+              <div
+                className="clickable-planet"
+                onClick={() => handlePlanetClick(1)}
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  top: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: 200,
+                  height: 200,
+                  borderRadius: "50%",
+                  cursor: isHarvesting ? "wait" : "pointer",
+                  border: "3px solid rgba(148,163,184,0.3)",
+                  transition: "all 0.2s ease",
+                  animation: "planetIdle 4s ease-in-out infinite",
+                  backgroundImage: `url(${
+                    game.location.planet?.toLowerCase() === "zwamsha"
+                      ? "/images/zwamsha.gif"
+                      : system?.planets?.find(p => p.name === game.location.planet)?.type === "altanerite"
+                      ? "/images/altanerite-planet.gif"
+                      : system?.planets?.find(p => p.name === game.location.planet)?.type === "homainionite"
+                      ? "/images/homainionite-planet.gif"
+                      : system?.planets?.find(p => p.name === game.location.planet)?.type === "gas"
+                      ? "/images/gas-planet.gif"
+                      : system?.planets?.find(p => p.name === game.location.planet)?.type === "ice"
+                      ? "/images/ice-planet.gif"
+                      : "/images/islands.gif"
+                  })`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  boxShadow: "0 0 20px rgba(56,189,248,0.3)",
+                  opacity: isHarvesting ? 0.7 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (!isHarvesting) {
+                    e.target.style.border = "3px solid #60a5fa";
+                    e.target.style.boxShadow = "0 0 30px rgba(96,165,250,0.5)";
+                    e.target.style.transform = "translate(-50%, -50%) scale(1.05)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isHarvesting) {
+                    e.target.style.border = "3px solid rgba(148,163,184,0.3)";
+                    e.target.style.boxShadow = "0 0 20px rgba(56,189,248,0.3)";
+                    e.target.style.transform = "translate(-50%, -50%) scale(1)";
+                  }
+                }}
+                onMouseDown={(e) => {
+                  if (!isHarvesting) {
+                    e.target.style.animation = "planetPulse 0.3s ease-out";
+                    setTimeout(() => {
+                      e.target.style.animation = "planetIdle 4s ease-in-out infinite";
+                    }, 300);
+                  }
+                }}
+              >
+                {/* Auto-harvest indicator */}
+                {autoHarvest && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: -10,
+                      right: -10,
+                      background: "#10b981",
+                      color: "white",
+                      fontSize: 10,
+                      fontWeight: "bold",
+                      padding: "2px 6px",
+                      borderRadius: 10,
+                      border: "2px solid rgba(15,23,42,0.8)",
+                    }}
+                  >
+                    AUTO
+                  </div>
+                )}
+                
+                {/* Planet name */}
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: -30,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    fontSize: 12,
+                    color: "#e2e8f0",
+                    fontWeight: "bold",
+                    textShadow: "0 1px 2px rgba(0,0,0,0.8)",
+                    textAlign: "center",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {game.location.planet}
+                </div>
+              </div>
+            )}
+            
+            {/* Space mode indicator */}
+            {game?.location?.mode === "space" && (
+              <div
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  top: "50%",
+                  transform: "translate(-50%, -50%)",
+                  fontSize: 16,
+                  color: "rgba(226,232,240,0.6)",
+                  textAlign: "center",
+                  background: "rgba(15,23,42,0.8)",
+                  padding: "20px",
+                  borderRadius: 12,
+                  border: "1px solid rgba(148,163,184,0.2)",
+                }}
+              >
+                <div style={{ marginBottom: 8 }}>🚀 In Space</div>
+                <div style={{ fontSize: 12 }}>
+                  Land on a planet to start harvesting
+                </div>
+              </div>
+            )}
           </div>
+          {/* Multi-click buttons and actions */}
+          {game?.location?.mode === "planet" && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+                <button
+                  onClick={() => handlePlanetClick(5)}
+                  disabled={isHarvesting}
+                  style={{
+                    padding: "8px 16px",
+                    background: "#3b82f6",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 6,
+                    fontSize: 12,
+                    opacity: isHarvesting ? 0.5 : 1,
+                    cursor: isHarvesting ? "not-allowed" : "pointer",
+                  }}
+                >
+                  Gather ×5
+                </button>
+                <button
+                  onClick={() => handlePlanetClick(10)}
+                  disabled={isHarvesting}
+                  style={{
+                    padding: "8px 16px",
+                    background: "#8b5cf6",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 6,
+                    fontSize: 12,
+                    opacity: isHarvesting ? 0.5 : 1,
+                    cursor: isHarvesting ? "not-allowed" : "pointer",
+                  }}
+                >
+                  Gather ×10
+                </button>
+                <button
+                  onClick={() => handlePlanetClick(25)}
+                  disabled={isHarvesting}
+                  style={{
+                    padding: "8px 16px",
+                    background: "#f59e0b",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 6,
+                    fontSize: 12,
+                    opacity: isHarvesting ? 0.5 : 1,
+                    cursor: isHarvesting ? "not-allowed" : "pointer",
+                  }}
+                >
+                  Gather ×25
+                </button>
+                <button
+                  onClick={toggleAutoHarvest}
+                  style={{
+                    padding: "8px 16px",
+                    background: autoHarvest ? "#10b981" : "#6b7280",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 6,
+                    fontSize: 12,
+                  }}
+                >
+                  {autoHarvest ? "Auto ON" : "Auto OFF"}
+                </button>
+              </div>
+              
+              {/* Session stats */}
+              <div style={{ 
+                fontSize: 11, 
+                color: "rgba(226,232,240,0.6)",
+                display: "flex",
+                gap: 16,
+                flexWrap: "wrap"
+              }}>
+                <span>Clicks: {sessionStats.clicks}</span>
+                <span>Highest Drop: {sessionStats.highestDrop}</span>
+                <span>
+                  Speed: {sessionStats.lastClicks.length > 1 
+                    ? ((sessionStats.lastClicks.length - 1) / 
+                       ((sessionStats.lastClicks[sessionStats.lastClicks.length - 1] - sessionStats.lastClicks[0]) / 1000)).toFixed(1)
+                    : 0}/s
+                </span>
+              </div>
+            </div>
+          )}
+          
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {!game.ship?.hasShip ? (
               <button onClick={buildShip}>
