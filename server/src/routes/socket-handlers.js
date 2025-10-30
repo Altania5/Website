@@ -21,9 +21,9 @@ function setupSocketHandlers(io) {
         }
         
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log('JWT decoded successfully:', { userId: decoded.userId });
-        
-        const user = await User.findById(decoded.userId);
+        console.log('JWT decoded successfully:', { userId: decoded.sub || decoded.userId });
+
+        const user = await User.findById(decoded.sub || decoded.userId);
         
         if (!user) {
           socket.emit('authenticated', { success: false, error: 'User not found' });
