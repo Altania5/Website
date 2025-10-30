@@ -18,20 +18,29 @@ router.post("/login", async (req, res) => {
   try {
     if (!ensureMongoConnected(res)) return;
     const { email, password } = req.body;
+    console.log("Login attempt for:", email);
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
     }
 
     const user = await User.findOne({ $or: [{ email: email.toLowerCase() }, { username: email }] }).lean();
+    console.log("User found:", user ? `Yes (${user.email})` : "No");
+    console.log("User fields:", user ? Object.keys(user) : "N/A");
 
     let isValid = false;
     if (user && user.passwordHash) {
+      console.log("Comparing with passwordHash");
       isValid = await bcrypt.compare(password, user.passwordHash);
+      console.log("Password valid:", isValid);
     } else if (user && user.webPassword) {
+      console.log("Comparing with webPassword (legacy)");
       isValid = password === user.webPassword; // Fallback for legacy plaintext
+    } else {
+      console.log("No password field found!");
     }
 
     if (!isValid) {
+      console.log("Login failed for:", email);
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
