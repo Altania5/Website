@@ -14,17 +14,21 @@ export default class GameStateManager {
       this.gameState = state;
       this.lastUpdate = Date.now();
       this.scene.registry.set('gameState', state);
-      
+
       // Emit event for other components to listen
       this.scene.events.emit('gameStateChanged', state);
     });
-    
+
     this.socket.on('harvest-result', (result) => {
       this.scene.events.emit('harvestResult', result);
     });
-    
+
     this.socket.on('travel-result', (result) => {
       this.scene.events.emit('travelResult', result);
+    });
+
+    this.socket.on('buy-result', (result) => {
+      this.scene.events.emit('buyResult', result);
     });
   }
   

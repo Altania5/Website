@@ -6,6 +6,107 @@ import MainScene from '../game/scenes/MainScene';
 import GalaxyScene from '../game/scenes/GalaxyScene';
 import io from 'socket.io-client';
 
+// Helper function for progression hints
+const getProgressionHint = (gameState) => {
+  const totalGenerators = (gameState.generators?.solarPanels || 0) +
+                          (gameState.generators?.miners || 0) +
+                          (gameState.generators?.reactors || 0);
+  const energy = gameState.resources?.energy || 0;
+  const altanerite = gameState.resources?.altanerite || 0;
+
+  // Early game hints
+  if (totalGenerators === 0) {
+    return "Harvest the planet and build your first Solar Panel (100 ⚡)";
+  }
+
+  if (totalGenerators < 3) {
+    return "Build more generators to increase passive income";
+  }
+
+  if ((gameState.generators?.miners || 0) === 0 && altanerite >= 5) {
+    return "Build a Miner to automate Altanerite production";
+  }
+
+  if (totalGenerators >= 3 && totalGenerators < 5) {
+    return "Aim for 5 generators to unlock the Industrial Complex quest";
+  }
+
+  if (energy < 1000 && totalGenerators >= 5) {
+    return "Keep harvesting and producing. Target: 1,000 energy";
+  }
+
+  // Mid game hints
+  if ((gameState.generators?.reactors || 0) === 0 && energy >= 200 && altanerite >= 10) {
+    return "Unlock Reactors for 8x energy production!";
+  }
+
+  if (totalGenerators >= 5 && totalGenerators < 10) {
+    return "Expand to 10 generators for mega factory status";
+  }
+
+  if (energy >= 1000 && altanerite < 500) {
+    return "Explore other planets for more Altanerite (Press G)";
+  }
+
+  // Late game hints
+  if (totalGenerators >= 10) {
+    return "You're doing great! Check achievements (Press A) and quests (Press Q)";
+  }
+
+  return "Keep conquering! Press Q for quests and A for achievements";
+};
+
+// Helper component for generator buttons
+const GeneratorButton = ({ name, icon, count, cost, production, canAfford, onClick, bgColor }) => {
+  const formatCost = (cost) => {
+    const parts = [];
+    if (cost.energy) parts.push(`${cost.energy} ⚡`);
+    if (cost.altanerite) parts.push(`${cost.altanerite} 💎`);
+    if (cost.homainionite) parts.push(`${cost.homainionite} 🔮`);
+    return parts.join(' + ');
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={!canAfford}
+      style={{
+        padding: '8px',
+        background: canAfford ? bgColor : '#4b5563',
+        color: canAfford ? 'white' : '#9ca3af',
+        border: canAfford ? `2px solid ${bgColor}` : '2px solid #6b7280',
+        borderRadius: 6,
+        fontSize: '11px',
+        cursor: canAfford ? 'pointer' : 'not-allowed',
+        textAlign: 'left',
+        transition: 'all 0.2s',
+        opacity: canAfford ? 1 : 0.6
+      }}
+      onMouseEnter={(e) => {
+        if (canAfford) {
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.boxShadow = `0 0 10px ${bgColor}`;
+        }
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'scale(1)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+        <span style={{ fontWeight: 'bold' }}>{icon} {name}</span>
+        <span style={{ fontSize: '10px', background: 'rgba(0,0,0,0.3)', padding: '2px 6px', borderRadius: 4 }}>
+          ×{count}
+        </span>
+      </div>
+      <div style={{ fontSize: '9px', opacity: 0.9 }}>{production}</div>
+      <div style={{ fontSize: '10px', marginTop: '2px', fontWeight: 'bold' }}>
+        Cost: {formatCost(cost)}
+      </div>
+    </button>
+  );
+};
+
 export default function PhaserGame() {
   const gameRef = useRef(null);
   const socketRef = useRef(null);
@@ -194,32 +295,75 @@ export default function PhaserGame() {
         
         {/* Resource display */}
         {gameState ? (
-          <div style={{ 
+          <div style={{
             position: 'absolute',
             top: 16,
             left: 16,
-            display: 'flex', 
-            gap: 16, 
-            padding: '12px 16px',
-            background: 'rgba(15,23,42,0.8)',
-            borderRadius: 8,
             pointerEvents: 'auto'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span>⚡</span>
-              <span>{Math.floor(gameState.resources?.energy || 0).toLocaleString()}</span>
+            {/* Main resources */}
+            <div style={{
+              display: 'flex',
+              gap: 16,
+              padding: '12px 16px',
+              background: 'rgba(15,23,42,0.9)',
+              borderRadius: 8,
+              marginBottom: 8,
+              border: '1px solid rgba(59,130,246,0.3)'
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span>⚡</span>
+                  <span style={{ fontWeight: 'bold' }}>
+                    {Math.floor(gameState.resources?.energy || 0).toLocaleString()}
+                  </span>
+                </div>
+                <div style={{ fontSize: '10px', color: '#10b981' }}>
+                  +{((gameState.generators?.solarPanels || 0) * 1.5 + (gameState.generators?.reactors || 0) * 8).toFixed(1)}/s
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span>💎</span>
+                  <span style={{ fontWeight: 'bold' }}>
+                    {Math.floor(gameState.resources?.altanerite || 0).toLocaleString()}
+                  </span>
+                </div>
+                <div style={{ fontSize: '10px', color: '#8b5cf6' }}>
+                  +{((gameState.generators?.miners || 0) * 0.3).toFixed(1)}/s
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span>🔮</span>
+                  <span style={{ fontWeight: 'bold' }}>
+                    {Math.floor(gameState.resources?.homainionite || 0).toLocaleString()}
+                  </span>
+                </div>
+                <div style={{ fontSize: '10px', color: '#ef4444' }}>
+                  Manual
+                </div>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span>💎</span>
-              <span>{Math.floor(gameState.resources?.altanerite || 0).toLocaleString()}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span>🔮</span>
-              <span>{Math.floor(gameState.resources?.homainionite || 0).toLocaleString()}</span>
+
+            {/* Progression hint */}
+            <div style={{
+              padding: '8px 12px',
+              background: 'rgba(16,185,129,0.15)',
+              borderRadius: 6,
+              fontSize: '11px',
+              color: '#10b981',
+              border: '1px solid rgba(16,185,129,0.3)',
+              maxWidth: '300px'
+            }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>💡 Next Step:</div>
+              <div>
+                {getProgressionHint(gameState)}
+              </div>
             </div>
           </div>
         ) : (
-          <div style={{ 
+          <div style={{
             position: 'absolute',
             top: 16,
             left: 16,
@@ -305,59 +449,61 @@ export default function PhaserGame() {
           </div>
         )}
         
-        {/* Generator purchase buttons */}
+        {/* Generator purchase panel */}
         {gameState && (
           <div style={{
             position: 'absolute',
-            top: 16,
+            top: 80,
             right: 16,
             display: 'flex',
             flexDirection: 'column',
             gap: 8,
-            pointerEvents: 'auto'
+            pointerEvents: 'auto',
+            background: 'rgba(15,23,42,0.9)',
+            padding: '12px',
+            borderRadius: 8,
+            border: '1px solid rgba(59,130,246,0.3)',
+            maxWidth: '220px'
           }}>
-            <button 
+            <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '4px', color: '#3b82f6' }}>
+              Generators
+            </div>
+
+            {/* Solar Panel */}
+            <GeneratorButton
+              name="Solar Panel"
+              icon="☀️"
+              count={gameState.generators?.solarPanels || 0}
+              cost={{ energy: 100 }}
+              production="+1.5 ⚡/s"
+              canAfford={(gameState.resources?.energy || 0) >= 100}
               onClick={() => buyGenerator('solar')}
-              style={{
-                padding: '6px 12px',
-                background: '#fbbf24',
-                color: 'black',
-                border: 'none',
-                borderRadius: 4,
-                fontSize: '12px',
-                cursor: 'pointer'
-              }}
-            >
-              Buy Solar Panel (100⚡)
-            </button>
-            <button 
+              bgColor="#fbbf24"
+            />
+
+            {/* Miner */}
+            <GeneratorButton
+              name="Miner"
+              icon="⛏️"
+              count={gameState.generators?.miners || 0}
+              cost={{ energy: 50, altanerite: 5 }}
+              production="+0.3 💎/s"
+              canAfford={(gameState.resources?.energy || 0) >= 50 && (gameState.resources?.altanerite || 0) >= 5}
               onClick={() => buyGenerator('miner')}
-              style={{
-                padding: '6px 12px',
-                background: '#8b5cf6',
-                color: 'white',
-                border: 'none',
-                borderRadius: 4,
-                fontSize: '12px',
-                cursor: 'pointer'
-              }}
-            >
-              Buy Miner (50⚡ + 5💎)
-            </button>
-            <button 
+              bgColor="#8b5cf6"
+            />
+
+            {/* Reactor */}
+            <GeneratorButton
+              name="Reactor"
+              icon="⚛️"
+              count={gameState.generators?.reactors || 0}
+              cost={{ energy: 200, altanerite: 10 }}
+              production="+8 ⚡/s"
+              canAfford={(gameState.resources?.energy || 0) >= 200 && (gameState.resources?.altanerite || 0) >= 10}
               onClick={() => buyGenerator('reactor')}
-              style={{
-                padding: '6px 12px',
-                background: '#ef4444',
-                color: 'white',
-                border: 'none',
-                borderRadius: 4,
-                fontSize: '12px',
-                cursor: 'pointer'
-              }}
-            >
-              Buy Reactor (200⚡ + 10💎)
-            </button>
+              bgColor="#ef4444"
+            />
           </div>
         )}
         
@@ -394,21 +540,32 @@ export default function PhaserGame() {
           position: 'absolute',
           bottom: 16,
           left: 16,
-          padding: '8px 12px',
-          background: 'rgba(15,23,42,0.8)',
-          borderRadius: 6,
+          padding: '10px 14px',
+          background: 'rgba(15,23,42,0.9)',
+          borderRadius: 8,
           fontSize: '11px',
-          color: '#94a3b8',
+          color: '#cbd5e1',
           pointerEvents: 'auto',
-          maxWidth: '200px'
+          maxWidth: '200px',
+          border: '1px solid rgba(59,130,246,0.3)'
         }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Keyboard Shortcuts:</div>
-          <div>Space/H - Harvest</div>
-          <div>G - Galaxy Map</div>
-          <div>M - Military</div>
-          <div>I - Inventory</div>
-          <div>E - Energy Info</div>
-          <div>F - Frequency</div>
+          <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#3b82f6', fontSize: '12px' }}>
+            ⌨️ Keyboard Shortcuts
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr', gap: '4px' }}>
+            <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>Space</span>
+            <span>Harvest planet</span>
+            <span style={{ color: '#10b981', fontWeight: 'bold' }}>G</span>
+            <span>Galaxy Map</span>
+            <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>Q</span>
+            <span>View Quests</span>
+            <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>A</span>
+            <span>Achievements</span>
+            <span style={{ color: '#8b5cf6', fontWeight: 'bold' }}>E</span>
+            <span>Production Info</span>
+            <span style={{ color: '#6b7280', fontWeight: 'bold' }}>M/I</span>
+            <span>Military/Inventory</span>
+          </div>
         </div>
       </div>
     </div>

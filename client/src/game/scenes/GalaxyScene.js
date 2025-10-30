@@ -7,33 +7,40 @@ export default class GalaxyScene extends Phaser.Scene {
   constructor() {
     super({ key: 'GalaxyScene' });
   }
-  
+
   create() {
     this.cameras.main.setBackgroundColor('#0f172a');
-    
+
     // Get socket from registry
     this.socket = this.registry.get('socket');
-    
+
     // Initialize managers
     this.gameStateManager = new GameStateManager(this, this.socket);
     this.inputManager = new InputManager(this);
     this.particleManager = new ParticleManager(this);
-    
+
+    // Get managers from MainScene if available
+    const mainScene = this.scene.get('MainScene');
+    if (mainScene) {
+      this.statsManager = mainScene.statsManager;
+      this.questManager = mainScene.questManager;
+    }
+
     // Get initial game state
     this.gameState = this.gameStateManager.getGameState() || {};
-    
+
     // Create star background
     this.createStarfield();
-    
+
     // Create central star
     this.createCentralStar();
-    
+
     // Create planets in orbit
     this.createPlanetOrbits();
-    
+
     // Create ship indicator
     this.createPlayerShip();
-    
+
     // Add navigation controls
     this.createNavigationControls();
   }
@@ -196,11 +203,11 @@ export default class GalaxyScene extends Phaser.Scene {
       this.showMessage('Not connected to server!', '#ef4444');
       return;
     }
-    
+
     // Find target planet
     const targetPlanet = this.planets.find(p => p.name === planetName);
     if (!targetPlanet) return;
-    
+
     // Animate ship moving
     this.tweens.add({
       targets: this.playerShip,
@@ -211,14 +218,22 @@ export default class GalaxyScene extends Phaser.Scene {
       onComplete: () => {
         // Use game state manager to travel
         const success = this.gameStateManager.travelToPlanet(planetName);
-        
+
         if (success) {
+          // Track travel for stats and quests
+          if (this.statsManager) {
+            this.statsManager.trackTravel(planetName);
+          }
+          if (this.questManager) {
+            this.questManager.trackAction('visit_planets');
+          }
+
           // Show warp effect
           this.particleManager.playWarpEffect(targetPlanet.sprite.x, targetPlanet.sprite.y);
-          
+
           // Show message
           this.showMessage(`Traveling to ${planetName}...`, '#10b981');
-          
+
           // Switch to main scene after delay
           this.time.delayedCall(1000, () => {
             this.scene.start('MainScene');
