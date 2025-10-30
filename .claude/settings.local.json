@@ -1,7 +1,20 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(heroku logs:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(heroku ps:*)",
+      "Bash(heroku config:set:*)",
+      "Bash(heroku addons:create:*)",
+      "Bash(heroku addons:services:*)",
+      "Bash(node create-user.js:*)",
+      "Bash(node:*)",
+      "Bash(move create-user.js servercreate-user.js)",
+      "Bash(heroku config:get:*)"
     ],
     "deny": [],
     "ask": []
