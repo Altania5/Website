@@ -115,8 +115,11 @@ export default function PhaserGame() {
   const [error, setError] = useState('');
   
   useEffect(() => {
-    // Initialize socket
-    socketRef.current = io('http://localhost:5000');
+    // Initialize socket - use production URL in production, localhost in development
+    const socketUrl = process.env.NODE_ENV === 'production'
+      ? window.location.origin
+      : 'http://localhost:5000';
+    socketRef.current = io(socketUrl);
     const token = localStorage.getItem('token');
     
     console.log('PhaserGame: Token from localStorage:', token ? 'present' : 'missing');
