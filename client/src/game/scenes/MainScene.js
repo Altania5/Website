@@ -545,11 +545,7 @@ export default class MainScene extends Phaser.Scene {
 
   update(time, delta) {
     // Update any animations or effects
-    if (this.planet) {
-      // Subtle breathing effect
-      const breathScale = 2 + Math.sin(time * 0.001) * 0.05;
-      this.planet.setScale(breathScale);
-    }
+
 
     // Periodic checks for achievements and quests
     if (this.gameState && time % 5000 < delta) {
